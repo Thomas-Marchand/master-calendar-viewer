@@ -5,10 +5,7 @@ const GIST_RAW_URL = 'https://gist.githubusercontent.com/Thomas-Marchand/427d44e
 const START_HOUR = 6;
 const HOUR_HEIGHT = 60; // 60px per hour
 const GROUP_SPECIFIC_COLORS = {
-    "M1": "#4243a6",
-    "M2": "#eb0909",
-    "M1_ANDROIDE": "#ba0c50",
-    "M2_ANDROIDE": "#bf1e9a"
+    "M1": "#4243a6", "M2": "#eb0909", "M1_ANDROIDE": "#ba0c50", "M2_ANDROIDE": "#bf1e9a"
 };
 const STALE_THRESHOLD_DAY_MIN = 15;
 const STALE_THRESHOLD_NIGHT_MIN = 70;
@@ -25,6 +22,7 @@ async function main() {
     popupCloseBtn.addEventListener('click', hidePopup);
     popupOverlay.addEventListener('click', hidePopup);
     popupBox.addEventListener('click', (e) => e.stopPropagation());
+    document.getElementById('sidebar-toggle-btn').addEventListener('click', toggleSidebar);
 
     createTimelineHours();
 
@@ -44,63 +42,64 @@ async function main() {
     }
 }
 
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function updateCollapsedIndicators() {
+    const indicatorContainer = document.getElementById('collapsed-group-indicators');
+    indicatorContainer.innerHTML = ''; // Clear existing indicators
+    
+    // Get selected groups that have a defined color
+    const activeGroups = selectedGroups.filter(g => groupColors[g]);
+    
+    activeGroups.forEach(group => {
+        const indicator = document.createElement('div');
+        indicator.className = 'indicator-line';
+        const color = groupColors[group];
+        indicator.style.backgroundColor = color;
+        // Use a lighter version of the color for the glow
+        indicator.style.boxShadow = `0 0 6px ${color}, 0 0 10px ${color}`;
+        indicatorContainer.appendChild(indicator);
+    });
+}
+
+
 function setupCurrentTimeTimer() {
     updateCurrentTimeIndicator();
-    if (currentTimeInterval) clearInterval(currentTimeInterval); // Clear old timers
-    currentTimeInterval = setInterval(updateCurrentTimeIndicator, 60000); // Update every minute
+    if (currentTimeInterval) clearInterval(currentTimeInterval);
+    currentTimeInterval = setInterval(updateCurrentTimeIndicator, 60000);
 }
 
 function updateCurrentTimeIndicator() {
     const existingLines = document.querySelectorAll('.current-time-line');
-    existingLines.forEach(line => line.remove()); // prevent duplicates
-
-    if (currentDateOffset !== 0) { // If not today, no indicator
-        return;
-    }
-
+    existingLines.forEach(line => line.remove());
+    if (currentDateOffset !== 0) return;
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const timelineStartMinutes = START_HOUR * 60;
-    const timelineEndMinutes = 22 * 60; // 10 PM
-
-    if (currentMinutes < timelineStartMinutes || currentMinutes > timelineEndMinutes) { // if outside the range, no indicator
-        return;
-    }
-
+    const timelineEndMinutes = 22 * 60;
+    if (currentMinutes < timelineStartMinutes || currentMinutes > timelineEndMinutes) return;
     const topPosition = ((currentMinutes - timelineStartMinutes) / 60) * HOUR_HEIGHT;
-    
     const timeLine = document.createElement('div');
     timeLine.className = 'current-time-line';
     timeLine.style.top = `${topPosition}px`;
-    
     const todayTimeline = document.getElementById('day1-timeline');
-    if(todayTimeline) {
-        todayTimeline.appendChild(timeLine);
-    }
+    if(todayTimeline) todayTimeline.appendChild(timeLine);
 }
 
-
-function showPopup() {
-    popupOverlay.classList.remove('hidden');
-}
-
-function hidePopup() {
-    popupOverlay.classList.add('hidden');
-}
+function showPopup() { popupOverlay.classList.remove('hidden'); }
+function hidePopup() { popupOverlay.classList.add('hidden'); }
 
 function checkDataFreshness() {
     const lastUpdatedElement = document.getElementById('last-updated');
     if (!scrapeMetadata.ts) return;
-
     const scrapedDate = new Date(scrapeMetadata.ts);
     const now = new Date();
     const currentHour = now.getHours();
-    
     const isDayTime = currentHour >= 6 && currentHour < 22;
     const threshold = isDayTime ? STALE_THRESHOLD_DAY_MIN : STALE_THRESHOLD_NIGHT_MIN;
-    
     const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
-
     if (diffMinutes > threshold) {
         lastUpdatedElement.classList.add('stale-data');
         showPopup();
@@ -109,9 +108,8 @@ function checkDataFreshness() {
     }
 }
 
-
 async function fetchData(url) {
-    const response = await fetch(`${url}?t=${new Date().getTime()}`); // force fresh fetch
+    const response = await fetch(`${url}?t=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
 }
@@ -119,7 +117,6 @@ async function fetchData(url) {
 function initializeGroups() {
     const groupList = document.getElementById('group-list');
     const uniqueGroups = [...new Set(allEvents.map(event => event.g))].sort();
-    
     const savedGroups = JSON.parse(localStorage.getItem('selectedGroups'));
     const defaultSelection = ['M2'];
     selectedGroups = savedGroups || defaultSelection;
@@ -127,15 +124,12 @@ function initializeGroups() {
     
     uniqueGroups.forEach(group => {
         groupColors[group] = GROUP_SPECIFIC_COLORS[group] || getRandomColor(group);
-
         const button = document.createElement('button');
         button.className = 'group-btn';
         button.textContent = group;
         button.dataset.group = group;
         button.style.backgroundColor = groupColors[group];
-        if (!selectedGroups.includes(group)) {
-            button.classList.add('inactive');
-        }
+        if (!selectedGroups.includes(group)) button.classList.add('inactive');
 
         button.addEventListener('click', () => {
             button.classList.toggle('inactive');
@@ -160,7 +154,6 @@ function createTimelineHours() {
             const line = document.createElement('div');
             line.className = 'hour-line';
             line.style.top = `${topPos}px`;
-
             if (hour < 22) {
                 const label = document.createElement('div');
                 label.className = 'hour-label';
@@ -178,30 +171,25 @@ function renderCalendar() {
     const day2Timeline = document.getElementById('day2-timeline');
     day1Timeline.innerHTML = '';
     day2Timeline.innerHTML = '';
-
     const baseDate = new Date();
     baseDate.setDate(baseDate.getDate() + currentDateOffset);
-    
     const day1Date = new Date(baseDate);
     const day2Date = new Date(baseDate);
     day2Date.setDate(day1Date.getDate() + 1);
-
     const day1Str = day1Date.toISOString().split('T')[0];
     const day2Str = day2Date.toISOString().split('T')[0];
-
     updateHeaders(day1Date, day2Date);
-
     const eventsToRender = allEvents.filter(event => {
         const eventDate = event.sd.split('/').reverse().join('-');
         return selectedGroups.includes(event.g) && (eventDate === day1Str || eventDate === day2Str);
     });
-    
     createTimelineHours();
     renderDayEvents(eventsToRender.filter(e => e.sd.split('/').reverse().join('-') === day1Str), day1Timeline);
     renderDayEvents(eventsToRender.filter(e => e.sd.split('/').reverse().join('-') === day2Str), day2Timeline);
-    
     updateNavButtonState();
     updateCurrentTimeIndicator();
+    // MODIFICATION: Update the indicators whenever the calendar is re-rendered
+    updateCollapsedIndicators();
 }
 
 function renderDayEvents(dayEvents, timelineElement) {
@@ -232,7 +220,6 @@ function renderDayEvents(dayEvents, timelineElement) {
         group.forEach(idx => { if (eventsWithLayout[idx].position === 0) { let pos = 0; while (takenPositions.has(pos)) pos++; eventsWithLayout[idx].position = pos; takenPositions.add(pos); } });
         group.forEach(idx => processed.add(idx));
     }
-
     for (const event of eventsWithLayout) {
         const eventBlock = document.createElement('div');
         eventBlock.className = 'event-block';
@@ -241,41 +228,31 @@ function renderDayEvents(dayEvents, timelineElement) {
         eventBlock.style.left = `${(event.position * 100) / totalColumns}%`;
         eventBlock.style.top = `${event.top}px`;
         eventBlock.style.height = `${Math.max(20, event.height - 2)}px`;
-        
         const color = groupColors[event.g] || '#ccc';
-        const lightColor = lightenHexColor(color, 40);
         eventBlock.style.backgroundColor = hexToRgba(color, 0.5);
         eventBlock.style.borderColor = color;
-        eventBlock.style.boxShadow = `0 0 0 1px ${lightColor}`;
-
         eventBlock.innerHTML = `<p class="event-title">${event.t}</p><p>${event.st} - ${event.et}</p><p>${event.l}</p>`;
         timelineElement.appendChild(eventBlock);
     }
 }
 
-function lightenHexColor(hex, amount) {
-    let usePound = false;
-    if (hex[0] === "#") { hex = hex.slice(1); usePound = true; }
-    const num = parseInt(hex, 16);
-    let r = (num >> 16) + amount;
-    if (r > 255) r = 255;
-    let b = ((num >> 8) & 0x00FF) + amount;
-    if (b > 255) b = 255;
-    let g = (num & 0x0000FF) + amount;
-    if (g > 255) g = 255;
-    return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
-}
-
-
 function updateHeaders(day1, day2) {
     const options = { weekday: 'short', month: 'short', day: 'numeric' };
     const day1Header = document.getElementById('day1-header');
     const day2Header = document.getElementById('day2-header');
-    if (currentDateOffset === 0) {
-        day1Header.textContent = `Today (${day1.toLocaleDateString(undefined, options)})`;
-    } else { day1Header.textContent = day1.toLocaleDateString(undefined, options); }
+    
+    day1Header.textContent = day1.toLocaleDateString(undefined, options);
     day2Header.textContent = day2.toLocaleDateString(undefined, options);
+
+    // Remove class from both first to reset
+    day1Header.classList.remove('today-header');
+    day2Header.classList.remove('today-header');
+
+    if (currentDateOffset === 0) {
+        day1Header.classList.add('today-header');
+    }
 }
+
 function navigateNext() {
     const maxOffset = (scrapeMetadata.w - 1) * 7;
     if (currentDateOffset >= maxOffset) return;
@@ -297,16 +274,14 @@ function setupLastUpdatedTimer() {
         const scrapedDate = new Date(scrapeMetadata.ts);
         const now = new Date();
         const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
-        
         if (diffMinutes < 1) { lastUpdatedElement.textContent = 'Last update: just now'; }
         else if (diffMinutes < 60) { lastUpdatedElement.textContent = `Last update: ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`; }
         else { const diffHours = Math.floor(diffMinutes / 60); lastUpdatedElement.textContent = `Last update: ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`; }
-
         checkDataFreshness();
     };
     update();
     if (lastUpdatedInterval) clearInterval(lastUpdatedInterval);
-    lastUpdatedInterval = setInterval(update, 60000); // update every minute
+    lastUpdatedInterval = setInterval(update, 60000);
 }
 function timeToMinutes(timeStr) {
     if (typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
