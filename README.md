@@ -30,7 +30,7 @@ This is a completely static web application hosted for free on GitHub. It has no
 
 ## 🚀 Setup and Installation
 
-No setup required! Just visit the page [here](https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPOSITORY_NAME/) to view the calendar.
+No setup required! Just visit the page [here](https://thomas-marchand.github.io/master-calendar-viewer) to view the calendar.
 
 ## 🗺️ Project Roadmap
 

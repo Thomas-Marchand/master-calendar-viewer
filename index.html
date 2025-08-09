@@ -10,9 +10,6 @@
     <div id="loading-indicator">Loading Calendar...</div>
 
     <div class="app-container">
-        <div id="sidebar-collapsed-container">
-            <div id="collapsed-group-indicators"></div>
-        </div>
         <div class="calendar-container">
             <div class="day-column">
                 <div class="day-header" id="day1-header"></div>
@@ -24,12 +21,13 @@
             </div>
         </div>
         <div id="sidebar">
+            <button id="sidebar-toggle-btn" title="Toggle Sidebar">›</button>
+            <div id="group-color-indicators"></div>
             <div class="sidebar-main-content">
                 <h3>Groups</h3>
                 <div id="group-list"></div>
             </div>
             <div class="sidebar-footer">
-                <button id="sidebar-toggle-btn" title="Toggle Sidebar">›</button>
                 <div id="navigation-controls">
                     <button id="prev-btn" title="Previous two days">↑ Previous</button>
                     <button id="next-btn" title="Next two days">↓ Next</button>
