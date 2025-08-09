@@ -91,7 +91,7 @@ body, html {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    height: 38.5px; /* Explicit height for transition matching */
+    height: 38.5px;
     box-sizing: border-box;
 }
 
@@ -141,9 +141,8 @@ body, html {
     box-sizing: border-box;
     opacity: 0;
     pointer-events: none;
-    /* Morph Target: Match the sidebar content styles */
     padding: 15px;
-    padding-top: 54px; /* Align with first button */
+    padding-top: 54px;
     gap: 8px;
     transition: opacity 0.2s ease, padding 0.3s ease, gap 0.3s ease;
 }
@@ -151,7 +150,7 @@ body, html {
 .color-indicator {
     width: 100%;
     box-shadow: 0 0 8px var(--glow-color);
-    height: 38.5px; /* morph target height */
+    height: 38.5px;
     border-radius: 6px;
     transition: height 0.3s ease, border-radius 0.3s ease, background-color 0.2s ease;
 }
@@ -184,7 +183,6 @@ body, html {
 .data-source {
     font-size: 0.7em;
     margin: 15px 0 5px 0;
-    /* Flex properties for alignment */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -228,7 +226,11 @@ body, html {
     display: flex;
     overflow-y: auto;
 }
-.day-column { flex: 1; position: relative; min-width: 150px; }
+.day-column {
+    flex: 1;
+    position: relative;
+    min-width: 150px;
+}
 .day-column:first-child { border-right: 1px solid #383838; }
 
 .day-header {
@@ -248,7 +250,7 @@ body, html {
 
 .timeline {
     position: relative;
-    height: 1020px;
+    height: 1080px; /* for 5AM to 11PM range */
     background-color: #1a1a1a;
 }
 

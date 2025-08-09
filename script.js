@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', main);
 
 // --- CONFIGURATION ---
 const GIST_RAW_URL = 'https://gist.githubusercontent.com/Thomas-Marchand/427d44e917d26d6073378d81db84d5b2/raw/calendar_events.json';
-const START_HOUR = 6;
+const START_HOUR = 5; // Start at 5AM to give padding for the 6AM label
+const END_HOUR = 23; // End at 11PM
 const HOUR_HEIGHT = 60; // 60px per hour
 const GROUP_SPECIFIC_COLORS = {
     "M1": "#4243a6",
@@ -66,7 +67,6 @@ function updateColorIndicators() {
     const indicatorContainer = document.getElementById('group-color-indicators');
     indicatorContainer.innerHTML = ''; // Clear existing indicators
 
-    // Iterate over ALL groups to maintain order and show inactive ones
     allUniqueGroups.forEach(group => {
         const indicator = document.createElement('div');
         const isActive = selectedGroups.includes(group);
@@ -75,7 +75,6 @@ function updateColorIndicators() {
             indicator.className = 'color-indicator';
             const color = groupColors[group] || '#ccc';
             indicator.style.backgroundColor = color;
-            // Use a CSS variable for the glow color
             indicator.style.setProperty('--glow-color', hexToRgba(color, 0.7));
         } else {
             indicator.className = 'color-indicator inactive';
@@ -88,24 +87,24 @@ function updateColorIndicators() {
 
 function setupCurrentTimeTimer() {
     updateCurrentTimeIndicator();
-    if (currentTimeInterval) clearInterval(currentTimeInterval); // Clear old timers
-    currentTimeInterval = setInterval(updateCurrentTimeIndicator, 60000); // Update every minute
+    if (currentTimeInterval) clearInterval(currentTimeInterval);
+    currentTimeInterval = setInterval(updateCurrentTimeIndicator, 60000);
 }
 
 function updateCurrentTimeIndicator() {
     const existingLines = document.querySelectorAll('.current-time-line');
-    existingLines.forEach(line => line.remove()); // prevent duplicates
+    existingLines.forEach(line => line.remove());
 
-    if (currentDateOffset !== 0) { // If not today, no indicator
+    if (currentDateOffset !== 0) {
         return;
     }
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const timelineStartMinutes = START_HOUR * 60;
-    const timelineEndMinutes = 22 * 60; // 10 PM
+    const timelineEndMinutes = END_HOUR * 60;
 
-    if (currentMinutes < timelineStartMinutes || currentMinutes > timelineEndMinutes) { // if outside the range, no indicator
+    if (currentMinutes < timelineStartMinutes || currentMinutes > timelineEndMinutes) {
         return;
     }
 
@@ -153,22 +152,20 @@ function checkDataFreshness() {
 
 
 async function fetchData(url) {
-    const response = await fetch(`${url}?t=${new Date().getTime()}`); // force fresh fetch
+    const response = await fetch(`${url}?t=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
 }
 
 function initializeGroups() {
     const groupList = document.getElementById('group-list');
-    // Get unique groups and save to the global variable for consistent order
     allUniqueGroups = [...new Set(allEvents.map(event => event.g))].sort();
     
     const savedGroups = JSON.parse(localStorage.getItem('selectedGroups'));
-    const defaultSelection = ['M2', 'M2_ANDROIDE'];
+    const defaultSelection = ['M2'];
     selectedGroups = savedGroups || defaultSelection;
     if (!savedGroups) localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
     
-    // Use the globally sorted list to create the buttons
     allUniqueGroups.forEach(group => {
         groupColors[group] = GROUP_SPECIFIC_COLORS[group] || getRandomColor(group);
 
@@ -190,25 +187,27 @@ function initializeGroups() {
                 selectedGroups.push(groupName);
             }
             localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
-            updateColorIndicators(); // Update indicators on change
+            updateColorIndicators();
             renderCalendar();
         });
         groupList.appendChild(button);
     });
-    updateColorIndicators(); // Initial call to set up indicators
+    updateColorIndicators();
 }
 
 function createTimelineHours() {
     const timelines = document.querySelectorAll('.timeline');
     timelines.forEach(timeline => {
         timeline.innerHTML = '';
-        for (let hour = START_HOUR; hour <= 22; hour++) {
+        // Loop to 23 to create an hour block for 22:00-23:00
+        for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
             const topPos = (hour - START_HOUR) * HOUR_HEIGHT;
             const line = document.createElement('div');
             line.className = 'hour-line';
             line.style.top = `${topPos}px`;
 
-            if (hour < 22) {
+            // Create labels from 6:00 to 22:00
+            if (hour > START_HOUR && hour < END_HOUR) {
                 const label = document.createElement('div');
                 label.className = 'hour-label';
                 label.textContent = `${hour}:00`;
@@ -228,7 +227,6 @@ function renderCalendar() {
     const eventBlocks2 = Array.from(day2Timeline.querySelectorAll('.event-block'));
     eventBlocks1.forEach(block => block.remove());
     eventBlocks2.forEach(block => block.remove());
-
 
     const baseDate = new Date();
     baseDate.setDate(baseDate.getDate() + currentDateOffset);
@@ -368,7 +366,7 @@ function setupLastUpdatedTimer() {
     };
     update();
     if (lastUpdatedInterval) clearInterval(lastUpdatedInterval);
-    lastUpdatedInterval = setInterval(update, 60000); // update every minute
+    lastUpdatedInterval = setInterval(update, 60000);
 }
 function timeToMinutes(timeStr) {
     if (typeof timeStr !== 'string' || !timeStr.includes(':')) return null;
