@@ -164,7 +164,7 @@ function initializeGroups() {
     allUniqueGroups = [...new Set(allEvents.map(event => event.g))].sort();
     
     const savedGroups = JSON.parse(localStorage.getItem('selectedGroups'));
-    const defaultSelection = ['M2'];
+    const defaultSelection = ['M2', 'M2_ANDROIDE'];
     selectedGroups = savedGroups || defaultSelection;
     if (!savedGroups) localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
     
