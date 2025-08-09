@@ -9,7 +9,15 @@ const GROUP_SPECIFIC_COLORS = {
     "M1": "#4243a6",
     "M2": "#eb0909",
     "M1_ANDROIDE": "#ba0c50",
-    "M2_ANDROIDE": "#bf1e9a"
+    "M2_ANDROIDE": "#bf1e9a",
+    // "M1_BIM": "#??????",
+    "M2_BIM": "#86c7ac",
+    // "M1_DAC": "#??????",
+    "M2_DAC": "#4c3553",
+    // "M1_IMA": "#??????",
+    "M2_IMA": "#2c2785",
+    // "M1_IQ": "#??????",
+    // "M2_IQ": "#??????",
 };
 const STALE_THRESHOLD_DAY_MIN = 15;
 const STALE_THRESHOLD_NIGHT_MIN = 70;
@@ -28,6 +36,8 @@ const dailyViewBtn = document.getElementById('daily-view-btn');
 const weeklyViewBtn = document.getElementById('weekly-view-btn');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
+const lastUpdatedElement = document.getElementById('last-updated');
+const collapsedSidebarInfo = document.getElementById('collapsed-sidebar-info');
 // Popups
 const popupOverlay = document.getElementById('popup-overlay');
 const popupBox = document.getElementById('popup-box');
@@ -76,6 +86,13 @@ async function main() {
     }
 }
 
+function dateToYyyyMmDdString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function initializeViewState() {
     const savedView = localStorage.getItem('calendarView');
     if (savedView === 'weekly') {
@@ -84,11 +101,71 @@ function initializeViewState() {
     updateViewButtons();
 }
 
+/**
+ * Switches the calendar view and intelligently adjusts the date offset.
+ * @param {string} newView - The view to switch to ('daily' or 'weekly').
+ */
 function switchView(newView) {
     if (newView === currentView) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate day calculations
+
+    const maxOffset = (scrapeMetadata.w - 1) * 7;
+    let newOffset = currentDateOffset;
+
+    if (newView === 'weekly') {
+        // --- Switching from Daily to Weekly ---
+        // show the week that contains the day currently being viewed.
+        const currentDay = new Date();
+        currentDay.setDate(currentDay.getDate() + currentDateOffset);
+        currentDay.setHours(0, 0, 0, 0);
+
+        const dayOfWeek = currentDay.getDay();
+        const difference = currentDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Get Monday
+        const mondayOfWeek = new Date(currentDay.setDate(difference));
+        
+        newOffset = Math.round((mondayOfWeek - today) / (1000 * 60 * 60 * 24));
+
+    } else if (newView === 'daily') {
+        // --- Switching from Weekly to Daily ---
+        // jump to the first day in the current week that has an event.
+        const weekStartDate = new Date();
+        weekStartDate.setDate(weekStartDate.getDate() + currentDateOffset);
+        const dayOfWeek = weekStartDate.getDay();
+        const difference = weekStartDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        const mondayOfWeek = new Date(weekStartDate.setDate(difference));
+        
+        let targetDay = new Date(mondayOfWeek); // Default to Monday
+        let foundEvent = false;
+
+        // list of date strings for the week to check against
+        const weekDateStrings = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(mondayOfWeek);
+            d.setDate(d.getDate() + i);
+            weekDateStrings.push(d.toISOString().split('T')[0].split('-').reverse().join('/'));
+        }
+
+        // Find first event in the week matching selected groups
+        const eventsInWeek = allEvents
+            .filter(e => selectedGroups.includes(e.g) && weekDateStrings.includes(e.sd))
+            .sort((a,b) => a.sd.split('/').reverse().join('-').localeCompare(b.sd.split('/').reverse().join('-')));
+
+        if (eventsInWeek.length > 0) {
+            const [day, month, year] = eventsInWeek[0].sd.split('/');
+            targetDay = new Date(year, month - 1, day);
+            foundEvent = true;
+        }
+        
+        newOffset = Math.round((targetDay - today) / (1000 * 60 * 60 * 24));
+    }
+
+    // Clamp the new offset to valid boundaries
+    currentDateOffset = Math.max(0, Math.min(newOffset, maxOffset));
+    
     currentView = newView;
     localStorage.setItem('calendarView', newView);
-    currentDateOffset = 0; // Reset offset when switching views
     updateViewButtons();
     renderCalendar();
 }
@@ -145,7 +222,7 @@ function updateCurrentTimeIndicator() {
     document.querySelectorAll('.current-time-line').forEach(line => line.remove());
 
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = dateToYyyyMmDdString(now);
     const todayColumnTimeline = document.querySelector(`.day-column[data-date='${todayStr}'] .timeline`);
 
     if (!todayColumnTimeline) return;
@@ -190,7 +267,6 @@ function hideEventDetail() {
 }
 
 function checkDataFreshness() {
-    const lastUpdatedElement = document.getElementById('last-updated');
     if (!scrapeMetadata.ts) return;
     const scrapedDate = new Date(scrapeMetadata.ts);
     const now = new Date();
@@ -198,11 +274,14 @@ function checkDataFreshness() {
     const isDayTime = currentHour >= 6 && currentHour < 22;
     const threshold = isDayTime ? STALE_THRESHOLD_DAY_MIN : STALE_THRESHOLD_NIGHT_MIN;
     const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
+
     if (diffMinutes > threshold) {
         lastUpdatedElement.classList.add('stale-data');
+        collapsedSidebarInfo.classList.add('stale-data');
         showPopup();
     } else {
         lastUpdatedElement.classList.remove('stale-data');
+        collapsedSidebarInfo.classList.remove('stale-data');
     }
 }
 
@@ -249,7 +328,7 @@ function initializeGroups() {
 }
 
 function renderCalendar() {
-    calendarContainer.innerHTML = ''; // Clear previous view
+    calendarContainer.innerHTML = ''; 
     calendarContainer.classList.toggle('weekly-view', currentView === 'weekly');
 
     const daysToShow = currentView === 'weekly' ? 7 : 2;
@@ -259,16 +338,15 @@ function renderCalendar() {
     let firstDayOfView = new Date(baseDate);
     if (currentView === 'weekly') {
         const dayOfWeek = firstDayOfView.getDay();
-        const difference = firstDayOfView.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday as first day
+        const difference = firstDayOfView.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
         firstDayOfView.setDate(difference);
     }
 
     for (let i = 0; i < daysToShow; i++) {
         const dayDate = new Date(firstDayOfView);
         dayDate.setDate(dayDate.getDate() + i);
-        const dayStr = dayDate.toISOString().split('T')[0];
+        const dayStr = dateToYyyyMmDdString(dayDate);
 
-        // Create column elements
         const dayColumn = document.createElement('div');
         dayColumn.className = 'day-column';
         dayColumn.dataset.date = dayStr;
@@ -285,7 +363,6 @@ function renderCalendar() {
         dayColumn.appendChild(timeline);
         calendarContainer.appendChild(dayColumn);
         
-        // Render events for this day
         const eventsForDay = allEvents.filter(event => {
             const eventDate = event.sd.split('/').reverse().join('-');
             return selectedGroups.includes(event.g) && eventDate === dayStr;
@@ -319,41 +396,73 @@ function createTimelineHours(timeline) {
 }
 
 function renderDayEvents(dayEvents, timelineElement) {
-    dayEvents.sort((a, b) => a.st.localeCompare(b.st));
-    const eventsWithLayout = [];
-    for (const event of dayEvents) {
-        const startMinutes = timeToMinutes(event.st);
-        const endMinutes = timeToMinutes(event.et);
-        if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) continue;
-        const top = ((startMinutes - (START_HOUR * 60)) / 60) * HOUR_HEIGHT;
-        const height = ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT;
-        eventsWithLayout.push({ ...event, top, height, overlaps: [], position: 0 });
-    }
-    // Very basic overlap detection and positioning
-    for (let i = 0; i < eventsWithLayout.length; i++) {
-        for (let j = i + 1; j < eventsWithLayout.length; j++) {
-            const eventA = eventsWithLayout[i]; const eventB = eventsWithLayout[j];
-            if (eventA.top < eventB.top + eventB.height && eventA.top + eventA.height > eventB.top) {
-                eventA.overlaps.push(j); eventB.overlaps.push(i);
+    if (!dayEvents.length) return;
+
+    const events = dayEvents
+        .map(event => {
+            const startMinutes = timeToMinutes(event.st);
+            const endMinutes = timeToMinutes(event.et);
+            if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) return null;
+            return {
+                ...event,
+                startMinutes,
+                endMinutes,
+                top: ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
+                height: ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT,
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.startMinutes - b.startMinutes);
+
+    const collisionBlocks = [];
+    if (events.length > 0) {
+        let currentBlock = [events[0]];
+        collisionBlocks.push(currentBlock);
+        let maxEndTimeInBlock = events[0].endMinutes;
+
+        for (let i = 1; i < events.length; i++) {
+            const event = events[i];
+            if (event.startMinutes >= maxEndTimeInBlock) {
+                currentBlock = [event];
+                collisionBlocks.push(currentBlock);
+                maxEndTimeInBlock = event.endMinutes;
+            } else {
+                currentBlock.push(event);
+                maxEndTimeInBlock = Math.max(maxEndTimeInBlock, event.endMinutes);
             }
         }
     }
-    const processed = new Set();
-    for (let i = 0; i < eventsWithLayout.length; i++) {
-        if (processed.has(i)) continue;
-        const group = [i, ...eventsWithLayout[i].overlaps];
-        const takenPositions = new Set();
-        group.forEach(idx => { if (eventsWithLayout[idx].position !== 0) takenPositions.add(eventsWithLayout[idx].position); });
-        group.forEach(idx => { if (eventsWithLayout[idx].position === 0) { let pos = 0; while (takenPositions.has(pos)) pos++; eventsWithLayout[idx].position = pos; takenPositions.add(pos); } });
-        group.forEach(idx => processed.add(idx));
+
+    for (const block of collisionBlocks) {
+        block.sort((a, b) => a.startMinutes - b.startMinutes);
+        const columns = [];
+        for (const event of block) {
+            let placed = false;
+            for (const col of columns) {
+                if (event.startMinutes >= col[col.length - 1].endMinutes) {
+                    col.push(event);
+                    event.colIndex = columns.indexOf(col);
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) {
+                columns.push([event]);
+                event.colIndex = columns.length - 1;
+            }
+        }
+        for (const event of block) {
+            event.totalColumns = columns.length;
+        }
     }
 
-    for (const event of eventsWithLayout) {
+    for (const event of events) {
         const eventBlock = document.createElement('div');
         eventBlock.className = 'event-block';
-        const totalColumns = new Set(event.overlaps.map(i=>eventsWithLayout[i].position)).size + 1;
-        eventBlock.style.width = `calc(${100 / totalColumns}% - 5px)`;
-        eventBlock.style.left = `${(event.position * 100) / totalColumns}%`;
+        
+        const width = 100 / event.totalColumns;
+        eventBlock.style.width = `calc(${width}% - 5px)`;
+        eventBlock.style.left = `${event.colIndex * width}%`;
         eventBlock.style.top = `${event.top}px`;
         eventBlock.style.height = `${Math.max(20, event.height - 2)}px`;
         
@@ -364,12 +473,13 @@ function renderDayEvents(dayEvents, timelineElement) {
 
         const isMobileWeekly = currentView === 'weekly' && window.innerWidth < MOBILE_BREAKPOINT;
         if (isMobileWeekly) {
-            eventBlock.innerHTML = `<p class="event-title">${event.l || 'N/A'}</p>`;
+            const locationText = event.l || 'N/A';
+            const verticalText = locationText.split('').join('<br>');
+            eventBlock.innerHTML = `<p class="event-title">${verticalText}</p>`;
             eventBlock.style.fontSize = '10px';
-            eventBlock.style.display = 'flex';
-            eventBlock.style.alignItems = 'center';
-            eventBlock.style.justifyContent = 'center';
+            eventBlock.style.lineHeight = '1.1';
             eventBlock.style.textAlign = 'center';
+            eventBlock.style.padding = '4px 2px';
         } else {
             eventBlock.innerHTML = `<p class="event-title">${event.t}</p><p>${event.st} - ${event.et}</p><p>${event.l}</p>`;
         }
@@ -388,25 +498,21 @@ function updateHeaderForDay(headerEl, date) {
     };
     headerEl.textContent = date.toLocaleDateString(undefined, options);
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (date.toISOString().split('T')[0] === todayStr) {
+    const todayStr = dateToYyyyMmDdString(new Date());
+    if (dateToYyyyMmDdString(date) === todayStr) {
         headerEl.classList.add('today-header');
     }
 }
 
 function navigateNext() {
     const increment = currentView === 'weekly' ? 7 : 2;
-    const maxOffset = (scrapeMetadata.w - 1) * 7;
-    if (currentDateOffset >= maxOffset) return;
     currentDateOffset += increment;
     renderCalendar();
 }
 
 function navigatePrevious() {
     const increment = currentView === 'weekly' ? 7 : 2;
-    if (currentDateOffset <= 0) return;
     currentDateOffset -= increment;
-    if (currentDateOffset < 0) currentDateOffset = 0;
     renderCalendar();
 }
 
@@ -415,22 +521,26 @@ function updateNavButtonState() {
     prevBtn.disabled = (currentDateOffset <= 0);
     nextBtn.disabled = (currentDateOffset >= maxOffset);
 
-    const period = currentView === 'weekly' ? 'week' : 'days';
+    const period = currentView === 'weekly' ? 'Week' : 'Days';
     prevBtn.title = `Previous ${period}`;
     nextBtn.title = `Next ${period}`;
 }
 
 function setupLastUpdatedTimer() {
-    const lastUpdatedElement = document.getElementById('last-updated');
     const update = () => {
         if (!scrapeMetadata.ts) return;
         const scrapedDate = new Date(scrapeMetadata.ts);
         const now = new Date();
         const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
         
-        if (diffMinutes < 1) { lastUpdatedElement.textContent = 'Last update: just now'; }
-        else if (diffMinutes < 60) { lastUpdatedElement.textContent = `Last update: ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`; }
-        else { const diffHours = Math.floor(diffMinutes / 60); lastUpdatedElement.textContent = `Last update: ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`; }
+        let textContent = '';
+        if (diffMinutes < 1) { textContent = 'Last update: just now'; }
+        else if (diffMinutes < 60) { textContent = `Last update: ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`; }
+        else { const diffHours = Math.floor(diffMinutes / 60); textContent = `Last update: ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`; }
+        
+        lastUpdatedElement.textContent = textContent;
+        collapsedSidebarInfo.textContent = textContent;
+
         checkDataFreshness();
     };
     update();
