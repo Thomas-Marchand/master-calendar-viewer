@@ -178,17 +178,29 @@ function handleTouchEnd(evt) {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
-    const swipeThreshold = 75; // Minimum distance for a swipe
+    // --- TUNING PARAMETERS ---
 
-    // Check if it's a horizontal swipe and not a vertical scroll
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
+    // 1. SWIPE DISTANCE: The minimum horizontal distance (in pixels) to travel.
+    //    Lower this value to detect shorter swipes. Good values are between 30 and 75.
+    const swipeThreshold = 40; 
+
+    // 2. SWIPE ANGLE: How horizontal the swipe must be.
+    //    A value of 1.0 means the swipe must be more horizontal than vertical.
+    //    Lowering this value (e.g., to 0.7) allows for more diagonal swipes.
+    const swipeLeniency = 0.7;
+    
+
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * swipeLeniency;
+
+    // Check if the gesture meets both the angle and distance requirements.
+    if (isHorizontalSwipe && Math.abs(deltaX) > swipeThreshold) {
         if (deltaX < 0) {
-            // Swipe Left
+            // Swipe Left (-> Next)
             if (!nextBtn.disabled) {
                 navigateNext();
             }
         } else {
-            // Swipe Right
+            // Swipe Right (-> Previous)
             if (!prevBtn.disabled) {
                 navigatePrevious();
             }
