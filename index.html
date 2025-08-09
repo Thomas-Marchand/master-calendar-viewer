@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Calendar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading-indicator">Loading Calendar...</div>
+
+    <div class="app-container">
+        <div class="calendar-container">
+            <div class="day-column">
+                <div class="day-header" id="day1-header"></div>
+                <div class="timeline" id="day1-timeline"></div>
+            </div>
+            <div class="day-column">
+                <div class="day-header" id="day2-header"></div>
+                <div class="timeline" id="day2-timeline"></div>
+            </div>
+        </div>
+        <div id="sidebar">
+            <div class="sidebar-main-content">
+                <h3>Groups</h3>
+                <div id="group-list"></div>
+            </div>
+            <div class="sidebar-footer">
+                <div id="navigation-controls">
+                    <button id="prev-btn" title="Previous two days">↑ Previous</button>
+                    <button id="next-btn" title="Next two days">↓ Next</button>
+                </div>
+                <p class="data-source">
+                    data from <a href="https://cal.ufr-info-p6.jussieu.fr/master/" target="_blank" rel="noopener noreferrer">cal.ufr-info-p6.jussieu.fr</a>
+                </p>
+                <div id="last-updated"></div>
+            </div>
+        </div>
+    </div>
+    <div id="popup-overlay" class="hidden">
+        <div id="popup-box">
+            <button id="popup-close-btn" title="Close">&times;</button>
+            <h2>Data May Be Outdated</h2>
+            <p>
+                The calendar data has not been updated recently. For the most current schedule, it is recommended to visit the original source.
+            </p>
+            <a href="https://cal.ufr-info-p6.jussieu.fr/master/" target="_blank" rel="noopener noreferrer" class="popup-link">Go to cal.ufr-info-p6.jussieu.fr/master</a>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
