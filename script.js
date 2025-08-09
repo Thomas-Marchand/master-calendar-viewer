@@ -15,6 +15,7 @@ const STALE_THRESHOLD_NIGHT_MIN = 70;
 
 // --- Global State ---
 let allEvents = [], groupColors = {}, selectedGroups = [], scrapeMetadata = {}, currentDateOffset = 0, lastUpdatedInterval, currentTimeInterval;
+let allUniqueGroups = []; // Store all groups in a consistent order
 const popupOverlay = document.getElementById('popup-overlay');
 const popupBox = document.getElementById('popup-box');
 const popupCloseBtn = document.getElementById('popup-close-btn');
@@ -63,13 +64,23 @@ function initializeSidebarState() {
 
 function updateColorIndicators() {
     const indicatorContainer = document.getElementById('group-color-indicators');
-    indicatorContainer.innerHTML = '';
-    selectedGroups.forEach(group => {
+    indicatorContainer.innerHTML = ''; // Clear existing indicators
+
+    // Iterate over ALL groups to maintain order and show inactive ones
+    allUniqueGroups.forEach(group => {
         const indicator = document.createElement('div');
-        indicator.className = 'color-indicator';
-        const color = groupColors[group] || '#ccc';
-        indicator.style.backgroundColor = color;
-        indicator.style.setProperty('--glow-color', hexToRgba(color, 0.7));
+        const isActive = selectedGroups.includes(group);
+
+        if (isActive) {
+            indicator.className = 'color-indicator';
+            const color = groupColors[group] || '#ccc';
+            indicator.style.backgroundColor = color;
+            // Use a CSS variable for the glow color
+            indicator.style.setProperty('--glow-color', hexToRgba(color, 0.7));
+        } else {
+            indicator.className = 'color-indicator inactive';
+        }
+        
         indicatorContainer.appendChild(indicator);
     });
 }
@@ -149,14 +160,16 @@ async function fetchData(url) {
 
 function initializeGroups() {
     const groupList = document.getElementById('group-list');
-    const uniqueGroups = [...new Set(allEvents.map(event => event.g))].sort();
+    // Get unique groups and save to the global variable for consistent order
+    allUniqueGroups = [...new Set(allEvents.map(event => event.g))].sort();
     
     const savedGroups = JSON.parse(localStorage.getItem('selectedGroups'));
     const defaultSelection = ['M2'];
     selectedGroups = savedGroups || defaultSelection;
     if (!savedGroups) localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
     
-    uniqueGroups.forEach(group => {
+    // Use the globally sorted list to create the buttons
+    allUniqueGroups.forEach(group => {
         groupColors[group] = GROUP_SPECIFIC_COLORS[group] || getRandomColor(group);
 
         const button = document.createElement('button');
@@ -177,18 +190,17 @@ function initializeGroups() {
                 selectedGroups.push(groupName);
             }
             localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
-            updateColorIndicators();
+            updateColorIndicators(); // Update indicators on change
             renderCalendar();
         });
         groupList.appendChild(button);
     });
-    updateColorIndicators(); // Initial call
+    updateColorIndicators(); // Initial call to set up indicators
 }
 
 function createTimelineHours() {
     const timelines = document.querySelectorAll('.timeline');
     timelines.forEach(timeline => {
-        // Clear existing hour lines and labels before creating new ones
         timeline.innerHTML = '';
         for (let hour = START_HOUR; hour <= 22; hour++) {
             const topPos = (hour - START_HOUR) * HOUR_HEIGHT;
@@ -212,7 +224,6 @@ function renderCalendar() {
     const day1Timeline = document.getElementById('day1-timeline');
     const day2Timeline = document.getElementById('day2-timeline');
     
-    // Detach event blocks before clearing
     const eventBlocks1 = Array.from(day1Timeline.querySelectorAll('.event-block'));
     const eventBlocks2 = Array.from(day2Timeline.querySelectorAll('.event-block'));
     eventBlocks1.forEach(block => block.remove());
@@ -236,8 +247,6 @@ function renderCalendar() {
         return selectedGroups.includes(event.g) && (eventDate === day1Str || eventDate === day2Str);
     });
     
-    // Re-create hours in case they were cleared
-    // Note: createTimelineHours() is now more careful about clearing
     if (day1Timeline.children.length < 10) createTimelineHours();
 
     renderDayEvents(eventsToRender.filter(e => e.sd.split('/').reverse().join('-') === day1Str), day1Timeline);
@@ -248,7 +257,6 @@ function renderCalendar() {
 }
 
 function renderDayEvents(dayEvents, timelineElement) {
-    // Clear only event blocks from the timeline
     const existingEvents = timelineElement.querySelectorAll('.event-block');
     existingEvents.forEach(e => e.remove());
 
@@ -322,7 +330,6 @@ function updateHeaders(day1, day2) {
     day1Header.textContent = day1.toLocaleDateString(undefined, options);
     day2Header.textContent = day2.toLocaleDateString(undefined, options);
 
-    // Remove class from both first to reset
     day1Header.classList.remove('today-header');
     day2Header.classList.remove('today-header');
 

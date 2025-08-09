@@ -4,7 +4,7 @@ body, html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #121212;
     color: #e0e0e0;
-    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height to account for mobile address bars */
     width: 100vw;
     overflow: hidden;
 }
@@ -45,6 +45,7 @@ body, html {
 
 #sidebar.collapsed #group-color-indicators {
     display: flex;
+    opacity: 1;
 }
 
 #sidebar.collapsed #sidebar-toggle-btn {
@@ -102,18 +103,17 @@ body, html {
 #sidebar-toggle-btn {
     position: absolute;
     top: 15px;
-    right: 100%; /* Position button to stick out */
+    right: 100%;
     width: 28px;
     height: 40px;
     background-color: #3a3a3a;
-    border: 1px solid #666; /* Full border */
+    border: 1px solid #666;
     color: #e0e0e0;
-    border-radius: 6px; /* Symmetrical rounded corners */
+    border-radius: 6px;
     cursor: pointer;
     font-size: 1.8em;
-    z-index: 1100;
+    z-index: 900;
     transition: transform 0.3s ease, background-color 0.3s ease;
-    /* Flex properties to perfectly center the character */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -122,22 +122,31 @@ body, html {
 
 
 #group-color-indicators {
-    display: none;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.1s;
     position: absolute;
     top: 0; left: 0;
-    width: 100%; height: 100%;
+    width: 100%;
     flex-direction: column;
-    justify-content: center;
     gap: 4px;
     padding: 0 4px;
+    padding-top: 70px;
     box-sizing: border-box;
+    pointer-events: none;
 }
 
 .color-indicator {
     width: 100%;
-    height: 15px;
+    height: 10px;
     border-radius: 3px;
     box-shadow: 0 0 8px var(--glow-color);
+    transition: all 0.2s ease;
+}
+
+.color-indicator.inactive {
+    background-color: #4a4a4a !important;
+    box-shadow: none;
 }
 
 #navigation-controls {
@@ -277,8 +286,8 @@ body, html {
     padding: 25px 30px;
     border-radius: 12px;
     box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    width: calc(100% - 40px); /* Ensure margins on mobile */
-    max-width: 380px; /* Limit max size */
+    width: calc(100% - 40px);
+    max-width: 380px;
     text-align: center;
     position: relative;
     border: 1px solid #444;
