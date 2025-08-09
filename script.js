@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', main);
 
 // --- CONFIGURATION ---
 const GIST_RAW_URL = 'https://gist.githubusercontent.com/Thomas-Marchand/427d44e917d26d6073378d81db84d5b2/raw/calendar_events.json';
-const START_HOUR = 5; // Start at 5AM to give padding for the 6AM label
-const END_HOUR = 23; // End at 11PM
+const START_HOUR = 6;
+const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // 60px per hour
 const GROUP_SPECIFIC_COLORS = {
     "M1": "#4243a6",
@@ -197,16 +197,20 @@ function initializeGroups() {
 
 function createTimelineHours() {
     const timelines = document.querySelectorAll('.timeline');
+    const timelineHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT; // Calculate height dynamically
+
     timelines.forEach(timeline => {
         timeline.innerHTML = '';
-        // Loop to 23 to create an hour block for 22:00-23:00
+        timeline.style.height = `${timelineHeight}px`; // Set height from script
+
+        // Loop to END_HOUR to create the last line at the bottom
         for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
             const topPos = (hour - START_HOUR) * HOUR_HEIGHT;
             const line = document.createElement('div');
             line.className = 'hour-line';
             line.style.top = `${topPos}px`;
 
-            // Create labels from 6:00 to 22:00
+            // Create labels for every hour except the very first and last one
             if (hour > START_HOUR && hour < END_HOUR) {
                 const label = document.createElement('div');
                 label.className = 'hour-label';

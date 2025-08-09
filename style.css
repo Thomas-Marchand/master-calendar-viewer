@@ -224,7 +224,7 @@ body, html {
 .calendar-container {
     flex-grow: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns */
+    grid-template-columns: 1fr 1fr;
     overflow-y: auto;
 }
 .day-column {
@@ -250,8 +250,8 @@ body, html {
 
 .timeline {
     position: relative;
-    height: 1080px;
     background-color: #1a1a1a;
+    /* Height is now set dynamically by script.js */
 }
 
 .hour-line {
