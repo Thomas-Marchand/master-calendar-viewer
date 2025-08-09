@@ -27,6 +27,8 @@ const MOBILE_BREAKPOINT = 768;
 let allEvents = [], groupColors = {}, selectedGroups = [], scrapeMetadata = {}, currentDateOffset = 0, lastUpdatedInterval, currentTimeInterval;
 let allUniqueGroups = [];
 let currentView = 'daily'; // 'daily' or 'weekly'
+let touchStartX = 0;
+let touchStartY = 0;
 
 // --- DOM Elements ---
 const sidebar = document.getElementById('sidebar');
@@ -67,6 +69,11 @@ async function main() {
     eventDetailOverlay.addEventListener('click', hideEventDetail);
     eventDetailBox.addEventListener('click', (e) => e.stopPropagation());
 
+    // [NEW] Swipe Gesture Listeners
+    calendarContainer.addEventListener('touchstart', handleTouchStart, false);
+    calendarContainer.addEventListener('touchmove', handleTouchMove, false);
+    calendarContainer.addEventListener('touchend', handleTouchEnd, false);
+
     initializeSidebarState();
     initializeViewState();
 
@@ -101,45 +108,31 @@ function initializeViewState() {
     updateViewButtons();
 }
 
-/**
- * Switches the calendar view and intelligently adjusts the date offset.
- * @param {string} newView - The view to switch to ('daily' or 'weekly').
- */
 function switchView(newView) {
     if (newView === currentView) return;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate day calculations
+    today.setHours(0, 0, 0, 0);
 
     const maxOffset = (scrapeMetadata.w - 1) * 7;
     let newOffset = currentDateOffset;
 
     if (newView === 'weekly') {
-        // --- Switching from Daily to Weekly ---
-        // show the week that contains the day currently being viewed.
         const currentDay = new Date();
         currentDay.setDate(currentDay.getDate() + currentDateOffset);
         currentDay.setHours(0, 0, 0, 0);
-
         const dayOfWeek = currentDay.getDay();
-        const difference = currentDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Get Monday
+        const difference = currentDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
         const mondayOfWeek = new Date(currentDay.setDate(difference));
-        
         newOffset = Math.round((mondayOfWeek - today) / (1000 * 60 * 60 * 24));
-
     } else if (newView === 'daily') {
-        // --- Switching from Weekly to Daily ---
-        // jump to the first day in the current week that has an event.
         const weekStartDate = new Date();
         weekStartDate.setDate(weekStartDate.getDate() + currentDateOffset);
         const dayOfWeek = weekStartDate.getDay();
         const difference = weekStartDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
         const mondayOfWeek = new Date(weekStartDate.setDate(difference));
-        
-        let targetDay = new Date(mondayOfWeek); // Default to Monday
-        let foundEvent = false;
+        let targetDay = new Date(mondayOfWeek);
 
-        // list of date strings for the week to check against
         const weekDateStrings = [];
         for (let i = 0; i < 7; i++) {
             const d = new Date(mondayOfWeek);
@@ -147,7 +140,6 @@ function switchView(newView) {
             weekDateStrings.push(d.toISOString().split('T')[0].split('-').reverse().join('/'));
         }
 
-        // Find first event in the week matching selected groups
         const eventsInWeek = allEvents
             .filter(e => selectedGroups.includes(e.g) && weekDateStrings.includes(e.sd))
             .sort((a,b) => a.sd.split('/').reverse().join('-').localeCompare(b.sd.split('/').reverse().join('-')));
@@ -155,19 +147,53 @@ function switchView(newView) {
         if (eventsInWeek.length > 0) {
             const [day, month, year] = eventsInWeek[0].sd.split('/');
             targetDay = new Date(year, month - 1, day);
-            foundEvent = true;
         }
-        
         newOffset = Math.round((targetDay - today) / (1000 * 60 * 60 * 24));
     }
 
-    // Clamp the new offset to valid boundaries
     currentDateOffset = Math.max(0, Math.min(newOffset, maxOffset));
-    
     currentView = newView;
     localStorage.setItem('calendarView', newView);
     updateViewButtons();
     renderCalendar();
+}
+
+// [NEW] Swipe Handler Functions
+function handleTouchStart(evt) {
+    const firstTouch = evt.touches[0];
+    touchStartX = firstTouch.clientX;
+    touchStartY = firstTouch.clientY;
+}
+
+function handleTouchMove(evt) {
+    // We only need to prevent default scrolling if we are sure it's a horizontal swipe
+    // but the main logic remains in touchend.
+}
+
+function handleTouchEnd(evt) {
+    const endTouch = evt.changedTouches[0];
+    const touchEndX = endTouch.clientX;
+    const touchEndY = endTouch.clientY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    const swipeThreshold = 75; // Minimum distance for a swipe
+
+    // Check if it's a horizontal swipe and not a vertical scroll
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
+        if (deltaX < 0) {
+            // Swipe Left
+            if (!nextBtn.disabled) {
+                navigateNext();
+            }
+        } else {
+            // Swipe Right
+            if (!prevBtn.disabled) {
+                navigatePrevious();
+            }
+        }
+    }
 }
 
 function updateViewButtons() {
