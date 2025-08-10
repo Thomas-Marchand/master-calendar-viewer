@@ -29,6 +29,7 @@ let allUniqueGroups = [];
 let currentView = 'daily'; // 'daily' or 'weekly'
 let touchStartX = 0;
 let touchStartY = 0;
+let touchStartTime = 0;
 
 // --- DOM Elements ---
 const sidebar = document.getElementById('sidebar');
@@ -79,7 +80,7 @@ async function main() {
     // Interaction Listeners
     calendarContainer.addEventListener('touchstart', handleTouchStart, false);
     calendarContainer.addEventListener('touchend', handleTouchEnd, false);
-    document.addEventListener('keydown', handleKeyPress); // [NEW] Keyboard listener
+    document.addEventListener('keydown', handleKeyPress);
 
     initializeSidebarState();
     initializeViewState();
@@ -175,21 +176,26 @@ function handleTouchStart(evt) {
     const firstTouch = evt.touches[0];
     touchStartX = firstTouch.clientX;
     touchStartY = firstTouch.clientY;
+    touchStartTime = new Date().getTime();
 }
 
 function handleTouchEnd(evt) {
     const endTouch = evt.changedTouches[0];
     const touchEndX = endTouch.clientX;
     const touchEndY = endTouch.clientY;
+    const touchEndTime = new Date().getTime();
+    const elapsedTime = touchEndTime - touchStartTime;
 
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
     const swipeThreshold = 40;
     const swipeLeniency = 0.7;
+    const swipeDuration = 700;
     const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * swipeLeniency;
+    const isSwipeFast = elapsedTime < swipeDuration;
 
-    if (isHorizontalSwipe && Math.abs(deltaX) > swipeThreshold) {
+    if (isHorizontalSwipe && isSwipeFast && Math.abs(deltaX) > swipeThreshold) {
         if (deltaX < 0) {
             if (!nextBtn.disabled) {
                 navigateNext();
@@ -205,7 +211,7 @@ function handleTouchEnd(evt) {
 }
 
 /**
- * [NEW] Handles keyboard navigation with Arrow Keys.
+ * Handles keyboard navigation with Arrow Keys.
  * @param {KeyboardEvent} event 
  */
 function handleKeyPress(event) {
@@ -223,7 +229,7 @@ function handleKeyPress(event) {
 }
 
 /**
- * [FIXED] Triggers the swipe animation on the day headers using a reliable setTimeout.
+ * Triggers the swipe animation on the day headers using a reliable setTimeout.
  */
 function triggerSwipeAnimation() {
     const headers = document.querySelectorAll('.day-header');
