@@ -270,6 +270,13 @@ body, html {
     100% { transform: scale(1) rotate(-90deg); }
 }
 
+/* [NEW] Quick pulse animation for swipe feedback */
+@keyframes swipe-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
 #last-updated.stale-data {
     color: #ff6b6b;
     font-weight: bold;
@@ -289,22 +296,11 @@ body, html {
     grid-template-columns: 1fr 1fr;
     overflow-y: auto;
     overflow-x: hidden;
-    transition: box-shadow 0.4s ease-out; /* For swipe feedback */
 }
 
 .calendar-container.weekly-view {
     grid-template-columns: repeat(7, 1fr);
     overflow-x: auto;
-}
-
-/* Swipe feedback animation */
-@keyframes pulse-feedback {
-    0% { box-shadow: inset 0 0 0 0 rgba(136, 176, 255, 0); }
-    50% { box-shadow: inset 0 0 15px 2px rgba(136, 176, 255, 0.4); }
-    100% { box-shadow: inset 0 0 0 0 rgba(136, 176, 255, 0); }
-}
-.swipe-feedback {
-    animation: pulse-feedback 0.4s ease-out;
 }
 
 .day-column {
@@ -325,6 +321,11 @@ body, html {
     text-align: center; padding: 10px; background-color: #2a2a2a;
     font-weight: bold; position: sticky; top: 0; z-index: 10;
     font-size: 0.9em;
+}
+
+/* [NEW] Class to apply the swipe feedback pulse */
+.day-header.swipe-feedback {
+    animation: swipe-pulse 0.4s ease-out;
 }
 
 .day-header.today-header {
@@ -397,7 +398,7 @@ body, html {
 /* --- Popup Styles --- */
 .hidden { display: none !important; }
 
-#popup-overlay, #welcome-overlay {
+#popup-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
@@ -409,12 +410,7 @@ body, html {
     backdrop-filter: blur(3px);
 }
 
-/* Welcome popup on top */
-#welcome-overlay {
-    z-index: 1200;
-}
-
-#popup-box, #welcome-box {
+#popup-box {
     background-color: #2e2e2e;
     padding: 25px 30px;
     border-radius: 12px;
@@ -426,7 +422,7 @@ body, html {
     border: 1px solid #444;
 }
 
-#popup-close-btn, #welcome-close-btn {
+#popup-close-btn {
     position: absolute;
     top: 10px; right: 15px;
     background: none;
@@ -436,14 +432,14 @@ body, html {
     cursor: pointer;
     line-height: 1;
 }
-#popup-close-btn:hover, #welcome-close-btn:hover { color: #fff; }
+#popup-close-btn:hover { color: #fff; }
 
-#popup-box h2, #welcome-box h2 {
+#popup-box h2 {
     margin-top: 0;
     color: #fff;
 }
 
-#popup-box p, #welcome-box p {
+#popup-box p {
     color: #ccc;
     line-height: 1.6;
 }
@@ -555,4 +551,50 @@ body, html {
     content: '📍';
     margin-right: 10px;
     font-size: 1.2em;
+}
+
+#instruction-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1200;
+    backdrop-filter: blur(3px);
+}
+
+#instruction-box {
+    background-color: #2e2e2e;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    width: calc(100% - 40px);
+    max-width: 380px;
+    text-align: center;
+    position: relative;
+    border: 1px solid #444;
+}
+
+#instruction-close-btn {
+    position: absolute;
+    top: 10px; right: 15px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+}
+#instruction-close-btn:hover { color: #fff; }
+
+#instruction-box h2 {
+    margin-top: 0;
+    color: #fff;
+}
+
+#instruction-box p {
+    color: #ccc;
+    line-height: 1.6;
 }
