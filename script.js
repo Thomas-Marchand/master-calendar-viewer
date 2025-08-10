@@ -51,6 +51,8 @@ const eventDetailTitle = document.getElementById('event-detail-title');
 const eventDetailGroup = document.getElementById('event-detail-group');
 const eventDetailTime = document.getElementById('event-detail-time');
 const eventDetailLocation = document.getElementById('event-detail-location');
+const welcomeOverlay = document.getElementById('welcome-overlay');
+const welcomeCloseBtn = document.getElementById('welcome-close-btn');
 
 
 async function main() {
@@ -68,8 +70,10 @@ async function main() {
     eventDetailCloseBtn.addEventListener('click', hideEventDetail);
     eventDetailOverlay.addEventListener('click', hideEventDetail);
     eventDetailBox.addEventListener('click', (e) => e.stopPropagation());
+    welcomeCloseBtn.addEventListener('click', hideWelcomePopup);
+    welcomeOverlay.addEventListener('click', hideWelcomePopup);
 
-    // [NEW] Swipe Gesture Listeners
+    // Swipe Gesture Listeners
     calendarContainer.addEventListener('touchstart', handleTouchStart, false);
     calendarContainer.addEventListener('touchmove', handleTouchMove, false);
     calendarContainer.addEventListener('touchend', handleTouchEnd, false);
@@ -87,6 +91,13 @@ async function main() {
         renderCalendar();
         setupLastUpdatedTimer();
         setupCurrentTimeTimer();
+
+        // Check if it's the first visit
+        if (!localStorage.getItem('hasVisited')) {
+            showWelcomePopup();
+            localStorage.setItem('hasVisited', 'true');
+        }
+
     } catch (error) {
         document.getElementById('loading-indicator').innerText = 'Failed to load calendar data.';
         console.error('Failed to initialize calendar:', error);
@@ -158,7 +169,7 @@ function switchView(newView) {
     renderCalendar();
 }
 
-// [NEW] Swipe Handler Functions
+// Swipe Handler Functions
 function handleTouchStart(evt) {
     const firstTouch = evt.touches[0];
     touchStartX = firstTouch.clientX;
@@ -166,8 +177,8 @@ function handleTouchStart(evt) {
 }
 
 function handleTouchMove(evt) {
-    // We only need to prevent default scrolling if we are sure it's a horizontal swipe
-    // but the main logic remains in touchend.
+    // This can be left empty, but the event listener is useful to prevent
+    // default browser actions if needed in the future.
 }
 
 function handleTouchEnd(evt) {
@@ -178,32 +189,20 @@ function handleTouchEnd(evt) {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
-    // --- TUNING PARAMETERS ---
-
-    // 1. SWIPE DISTANCE: The minimum horizontal distance (in pixels) to travel.
-    //    Lower this value to detect shorter swipes. Good values are between 30 and 75.
-    const swipeThreshold = 40; 
-
-    // 2. SWIPE ANGLE: How horizontal the swipe must be.
-    //    A value of 1.0 means the swipe must be more horizontal than vertical.
-    //    Lowering this value (e.g., to 0.7) allows for more diagonal swipes.
-    const swipeLeniency = 0.7;
-    
+    const swipeThreshold = 30; // Minimum distance for a swipe.
+    const swipeLeniency = 0.7; // How much vertical movement is allowed.
 
     const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * swipeLeniency;
 
-    // Check if the gesture meets both the angle and distance requirements.
     if (isHorizontalSwipe && Math.abs(deltaX) > swipeThreshold) {
+        // Add visual feedback for the swipe
+        calendarContainer.classList.add('swipe-feedback');
+        setTimeout(() => calendarContainer.classList.remove('swipe-feedback'), 400);
+
         if (deltaX < 0) {
-            // Swipe Left (-> Next)
-            if (!nextBtn.disabled) {
-                navigateNext();
-            }
+            if (!nextBtn.disabled) navigateNext();
         } else {
-            // Swipe Right (-> Previous)
-            if (!prevBtn.disabled) {
-                navigatePrevious();
-            }
+            if (!prevBtn.disabled) navigatePrevious();
         }
     }
 }
@@ -280,14 +279,9 @@ function updateCurrentTimeIndicator() {
     todayColumnTimeline.appendChild(timeLine);
 }
 
-function showPopup() {
-    popupOverlay.classList.remove('hidden');
-}
-
-function hidePopup() {
-    popupOverlay.classList.add('hidden');
-}
-
+// Popup Handlers
+function showPopup() { popupOverlay.classList.remove('hidden'); }
+function hidePopup() { popupOverlay.classList.add('hidden'); }
 function showEventDetail(event) {
     if (!event) return;
     eventDetailTitle.textContent = event.t;
@@ -299,10 +293,10 @@ function showEventDetail(event) {
     eventDetailGroup.style.color = color;
     eventDetailOverlay.classList.remove('hidden');
 }
+function hideEventDetail() { eventDetailOverlay.classList.add('hidden'); }
+function showWelcomePopup() { welcomeOverlay.classList.remove('hidden'); }
+function hideWelcomePopup() { welcomeOverlay.classList.add('hidden'); }
 
-function hideEventDetail() {
-    eventDetailOverlay.classList.add('hidden');
-}
 
 function checkDataFreshness() {
     if (!scrapeMetadata.ts) return;
@@ -313,7 +307,8 @@ function checkDataFreshness() {
     const threshold = isDayTime ? STALE_THRESHOLD_DAY_MIN : STALE_THRESHOLD_NIGHT_MIN;
     const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
 
-    if (diffMinutes > threshold) {
+    // Do not show the 'outdated' popup if the welcome popup is being shown
+    if (diffMinutes > threshold && localStorage.getItem('hasVisited')) {
         lastUpdatedElement.classList.add('stale-data');
         collapsedSidebarInfo.classList.add('stale-data');
         showPopup();
