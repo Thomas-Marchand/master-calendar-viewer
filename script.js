@@ -76,9 +76,10 @@ async function main() {
     instructionPopupOkBtn.addEventListener('click', hideInstructionPopup);
     instructionPopupOverlay.addEventListener('click', hideInstructionPopup);
 
-    // Swipe Gesture Listeners
+    // Interaction Listeners
     calendarContainer.addEventListener('touchstart', handleTouchStart, false);
     calendarContainer.addEventListener('touchend', handleTouchEnd, false);
+    document.addEventListener('keydown', handleKeyPress); // [NEW] Keyboard listener
 
     initializeSidebarState();
     initializeViewState();
@@ -94,12 +95,12 @@ async function main() {
         setupLastUpdatedTimer();
         setupCurrentTimeTimer();
 
-        // Show instruction popup on first visit
         if (!localStorage.getItem('calendarVisited')) {
             instructionPopupOverlay.classList.remove('hidden');
         }
 
-    } catch (error) {
+    } catch (error)
+    {
         document.getElementById('loading-indicator').innerText = 'Failed to load calendar data.';
         console.error('Failed to initialize calendar:', error);
     }
@@ -189,23 +190,53 @@ function handleTouchEnd(evt) {
     const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * swipeLeniency;
 
     if (isHorizontalSwipe && Math.abs(deltaX) > swipeThreshold) {
-        triggerSwipeAnimation();
         if (deltaX < 0) {
-            if (!nextBtn.disabled) navigateNext();
+            if (!nextBtn.disabled) {
+                navigateNext();
+                triggerSwipeAnimation();
+            }
         } else {
-            if (!prevBtn.disabled) navigatePrevious();
+            if (!prevBtn.disabled) {
+                navigatePrevious();
+                triggerSwipeAnimation();
+            }
         }
     }
 }
 
+/**
+ * [NEW] Handles keyboard navigation with Arrow Keys.
+ * @param {KeyboardEvent} event 
+ */
+function handleKeyPress(event) {
+    if (event.key === 'ArrowRight') {
+        if (!nextBtn.disabled) {
+            navigateNext();
+            triggerSwipeAnimation();
+        }
+    } else if (event.key === 'ArrowLeft') {
+        if (!prevBtn.disabled) {
+            navigatePrevious();
+            triggerSwipeAnimation();
+        }
+    }
+}
+
+/**
+ * [FIXED] Triggers the swipe animation on the day headers using a reliable setTimeout.
+ */
 function triggerSwipeAnimation() {
     const headers = document.querySelectorAll('.day-header');
     headers.forEach(header => {
         header.classList.add('swiped');
-        header.addEventListener('animationend', () => {
-            header.classList.remove('swiped');
-        }, { once: true });
     });
+
+    // Remove the class after the animation is guaranteed to have finished.
+    setTimeout(() => {
+        headers.forEach(header => {
+            header.classList.remove('swiped');
+        });
+    }, 400); // Duration must match the animation duration in CSS
 }
 
 function updateViewButtons() {
@@ -565,8 +596,8 @@ function updateNavButtonState() {
     nextBtn.disabled = (currentDateOffset >= maxOffset);
 
     const period = currentView === 'weekly' ? 'Week' : 'Days';
-    prevBtn.title = `Previous ${period}`;
-    nextBtn.title = `Next ${period}`;
+    prevBtn.title = `Previous ${period} (←)`;
+    nextBtn.title = `Next ${period} (→)`;
 }
 
 function setupLastUpdatedTimer() {

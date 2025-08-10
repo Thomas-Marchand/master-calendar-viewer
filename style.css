@@ -320,14 +320,13 @@ body, html {
     animation: pulse-text-glow 2.5s infinite;
 }
 
-/* [NEW] Swipe feedback animation */
 .day-header.swiped {
-    animation: pulse-swipe 0.4s ease-out;
+    animation: pulse-swipe 0.3s ease-out;
 }
 
 @keyframes pulse-swipe {
     0% { transform: scale(1); background-color: #2a2a2a; }
-    50% { transform: scale(1.1); background-color: #4f4f4f; }
+    20% { transform: scale(1.1); background-color: #3a3a3a; }
     100% { transform: scale(1); background-color: #2a2a2a; }
 }
 
@@ -411,7 +410,7 @@ body, html {
 }
 
 #instruction-popup-overlay {
-    z-index: 1200; /* Highest z-index to appear on top */
+    z-index: 1200;
 }
 
 #popup-box, #instruction-popup-box {
