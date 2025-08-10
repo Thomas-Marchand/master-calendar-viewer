@@ -4,20 +4,15 @@ document.addEventListener('DOMContentLoaded', main);
 const GIST_RAW_URL = 'https://gist.githubusercontent.com/Thomas-Marchand/427d44e917d26d6073378d81db84d5b2/raw/calendar_events.json';
 const START_HOUR = 6;
 const END_HOUR = 21;
-const HOUR_HEIGHT = 60; // 60px per hour
+const HOUR_HEIGHT = 60;
 const GROUP_SPECIFIC_COLORS = {
     "M1": "#4243a6",
     "M2": "#eb0909",
     "M1_ANDROIDE": "#ba0c50",
     "M2_ANDROIDE": "#bf1e9a",
-    // "M1_BIM": "#??????",
     "M2_BIM": "#86c7ac",
-    // "M1_DAC": "#??????",
     "M2_DAC": "#4c3553",
-    // "M1_IMA": "#??????",
     "M2_IMA": "#2c2785",
-    // "M1_IQ": "#??????",
-    // "M2_IQ": "#??????",
 };
 const STALE_THRESHOLD_DAY_MIN = 15;
 const STALE_THRESHOLD_NIGHT_MIN = 70;
@@ -27,9 +22,8 @@ const MOBILE_BREAKPOINT = 768;
 let allEvents = [], groupColors = {}, selectedGroups = [], scrapeMetadata = {}, currentDateOffset = 0, lastUpdatedInterval, currentTimeInterval;
 let allUniqueGroups = [];
 let currentView = 'daily'; // 'daily' or 'weekly'
-let touchStartX = 0;
-let touchStartY = 0;
-let touchStartTime = 0;
+let touchStartX, touchStartY, touchStartTime = 0;
+let isStalePopupShown = false;
 
 // --- DOM Elements ---
 const sidebar = document.getElementById('sidebar');
@@ -42,20 +36,17 @@ const nextBtn = document.getElementById('next-btn');
 const lastUpdatedElement = document.getElementById('last-updated');
 const collapsedSidebarInfo = document.getElementById('collapsed-sidebar-info');
 // Popups
-const popupOverlay = document.getElementById('popup-overlay');
-const popupBox = document.getElementById('popup-box');
-const popupCloseBtn = document.getElementById('popup-close-btn');
+const instructionPopupOverlay = document.getElementById('instruction-popup-overlay');
+const stalePopupOverlay = document.getElementById('stale-popup-overlay');
+const stalePopupBox = document.getElementById('stale-popup-box');
 const eventDetailOverlay = document.getElementById('event-detail-overlay');
 const eventDetailBox = document.getElementById('event-detail-box');
 const eventDetailCloseBtn = document.getElementById('event-detail-close-btn');
 const eventDetailTitle = document.getElementById('event-detail-title');
 const eventDetailGroup = document.getElementById('event-detail-group');
+const eventDetailDate = document.getElementById('event-detail-date');
 const eventDetailTime = document.getElementById('event-detail-time');
 const eventDetailLocation = document.getElementById('event-detail-location');
-// Instruction Popup
-const instructionPopupOverlay = document.getElementById('instruction-popup-overlay');
-const instructionPopupCloseBtn = document.getElementById('instruction-popup-close-btn');
-const instructionPopupOkBtn = document.getElementById('instruction-popup-ok-btn');
 
 
 async function main() {
@@ -67,14 +58,11 @@ async function main() {
     weeklyViewBtn.addEventListener('click', () => switchView('weekly'));
     
     // Popup Listeners
-    popupCloseBtn.addEventListener('click', hidePopup);
-    popupOverlay.addEventListener('click', hidePopup);
-    popupBox.addEventListener('click', (e) => e.stopPropagation());
+    stalePopupOverlay.addEventListener('click', hidePopup);
+    stalePopupBox.addEventListener('click', (e) => e.stopPropagation());
     eventDetailCloseBtn.addEventListener('click', hideEventDetail);
     eventDetailOverlay.addEventListener('click', hideEventDetail);
     eventDetailBox.addEventListener('click', (e) => e.stopPropagation());
-    instructionPopupCloseBtn.addEventListener('click', hideInstructionPopup);
-    instructionPopupOkBtn.addEventListener('click', hideInstructionPopup);
     instructionPopupOverlay.addEventListener('click', hideInstructionPopup);
 
     // Interaction Listeners
@@ -148,7 +136,7 @@ function switchView(newView) {
         let targetDay = new Date(mondayOfWeek);
 
         const weekDateStrings = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 6; i++) {
             const d = new Date(mondayOfWeek);
             d.setDate(d.getDate() + i);
             weekDateStrings.push(d.toISOString().split('T')[0].split('-').reverse().join('/'));
@@ -228,9 +216,6 @@ function handleKeyPress(event) {
     }
 }
 
-/**
- * Triggers the swipe animation on the day headers using a reliable setTimeout.
- */
 function triggerSwipeAnimation() {
     const headers = document.querySelectorAll('.day-header');
     headers.forEach(header => {
@@ -242,7 +227,7 @@ function triggerSwipeAnimation() {
         headers.forEach(header => {
             header.classList.remove('swiped');
         });
-    }, 400); // Duration must match the animation duration in CSS
+    }, 300); // match the animation duration in CSS : .day-header.swiped
 }
 
 function updateViewButtons() {
@@ -318,11 +303,11 @@ function updateCurrentTimeIndicator() {
 }
 
 function showPopup() {
-    popupOverlay.classList.remove('hidden');
+    stalePopupOverlay.classList.remove('hidden');
 }
 
 function hidePopup() {
-    popupOverlay.classList.add('hidden');
+    stalePopupOverlay.classList.add('hidden');
 }
 
 function hideInstructionPopup() {
@@ -332,13 +317,24 @@ function hideInstructionPopup() {
 
 function showEventDetail(event) {
     if (!event) return;
+
+    // Parse the date from the "DD/MM/YYYY" string
+    const [day, month, year] = event.sd.split('/');
+    const eventDate = new Date(year, month - 1, day);
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+    // Populate the popup with event data
     eventDetailTitle.textContent = event.t;
+    eventDetailGroup.textContent = `Group: ${event.g}`;
+    eventDetailDate.textContent = eventDate.toLocaleDateString(undefined, dateOptions); // Using browser's locale
     eventDetailTime.textContent = `${event.st} - ${event.et}`;
     eventDetailLocation.textContent = event.l || 'No location specified';
-    eventDetailGroup.textContent = `Group: ${event.g}`;
+
+    // Style the popup based on the event's group color
     const color = groupColors[event.g] || '#888';
     eventDetailBox.style.borderTopColor = color;
     eventDetailGroup.style.color = color;
+
     eventDetailOverlay.classList.remove('hidden');
 }
 
@@ -358,10 +354,15 @@ function checkDataFreshness() {
     if (diffMinutes > threshold) {
         lastUpdatedElement.classList.add('stale-data');
         collapsedSidebarInfo.classList.add('stale-data');
-        showPopup();
+        // showPopup();
+        if (!isStalePopupShown) {
+            showPopup();
+            isStalePopupShown = true;
+        }
     } else {
         lastUpdatedElement.classList.remove('stale-data');
         collapsedSidebarInfo.classList.remove('stale-data');
+        isStalePopupShown = false;
     }
 }
 
@@ -411,7 +412,7 @@ function renderCalendar() {
     calendarContainer.innerHTML = ''; 
     calendarContainer.classList.toggle('weekly-view', currentView === 'weekly');
 
-    const daysToShow = currentView === 'weekly' ? 7 : 2;
+    const daysToShow = currentView === 'weekly' ? 6 : 2;
     const baseDate = new Date();
     baseDate.setDate(baseDate.getDate() + currentDateOffset);
 
@@ -577,6 +578,7 @@ function updateHeaderForDay(headerEl, date) {
         day: 'numeric' 
     };
     headerEl.textContent = date.toLocaleDateString(undefined, options);
+    // headerEl.textContent = date.toLocaleDateString('en-US', options);
 
     const todayStr = dateToYyyyMmDdString(new Date());
     if (dateToYyyyMmDdString(date) === todayStr) {
