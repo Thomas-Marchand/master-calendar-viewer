@@ -227,7 +227,7 @@ function triggerSwipeAnimation() {
         headers.forEach(header => {
             header.classList.remove('swiped');
         });
-    }, 300); // match the animation duration in CSS : .day-header.swiped
+    }, 200); // match the animation duration in CSS : .day-header.swiped
 }
 
 function updateViewButtons() {
@@ -578,7 +578,6 @@ function updateHeaderForDay(headerEl, date) {
         day: 'numeric' 
     };
     headerEl.textContent = date.toLocaleDateString(undefined, options);
-    // headerEl.textContent = date.toLocaleDateString('en-US', options);
 
     const todayStr = dateToYyyyMmDdString(new Date());
     if (dateToYyyyMmDdString(date) === todayStr) {
