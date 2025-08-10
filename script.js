@@ -14,7 +14,7 @@ const GROUP_SPECIFIC_COLORS = {
     "M2_DAC": "#4c3553",
     "M2_IMA": "#2c2785",
 };
-const STALE_THRESHOLD_DAY_MIN = 15;
+const STALE_THRESHOLD_DAY_MIN = 40;
 const STALE_THRESHOLD_NIGHT_MIN = 70;
 const MOBILE_BREAKPOINT = 768;
 
@@ -58,7 +58,7 @@ async function main() {
     weeklyViewBtn.addEventListener('click', () => switchView('weekly'));
     
     // Popup Listeners
-    stalePopupOverlay.addEventListener('click', hidePopup);
+    stalePopupOverlay.addEventListener('click', hideStalePopup);
     stalePopupBox.addEventListener('click', (e) => e.stopPropagation());
     eventDetailCloseBtn.addEventListener('click', hideEventDetail);
     eventDetailOverlay.addEventListener('click', hideEventDetail);
@@ -198,10 +198,6 @@ function handleTouchEnd(evt) {
     }
 }
 
-/**
- * Handles keyboard navigation with Arrow Keys.
- * @param {KeyboardEvent} event 
- */
 function handleKeyPress(event) {
     if (event.key === 'ArrowRight') {
         if (!nextBtn.disabled) {
@@ -221,8 +217,6 @@ function triggerSwipeAnimation() {
     headers.forEach(header => {
         header.classList.add('swiped');
     });
-
-    // Remove the class after the animation is guaranteed to have finished.
     setTimeout(() => {
         headers.forEach(header => {
             header.classList.remove('swiped');
@@ -302,11 +296,11 @@ function updateCurrentTimeIndicator() {
     todayColumnTimeline.appendChild(timeLine);
 }
 
-function showPopup() {
+function showStalePopup() {
     stalePopupOverlay.classList.remove('hidden');
 }
 
-function hidePopup() {
+function hideStalePopup() {
     stalePopupOverlay.classList.add('hidden');
 }
 
@@ -317,20 +311,16 @@ function hideInstructionPopup() {
 
 function showEventDetail(event) {
     if (!event) return;
-
-    // Parse the date from the "DD/MM/YYYY" string
     const [day, month, year] = event.sd.split('/');
     const eventDate = new Date(year, month - 1, day);
     const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
-    // Populate the popup with event data
     eventDetailTitle.textContent = event.t;
     eventDetailGroup.textContent = `Group: ${event.g}`;
-    eventDetailDate.textContent = eventDate.toLocaleDateString(undefined, dateOptions); // Using browser's locale
+    eventDetailDate.textContent = eventDate.toLocaleDateString(undefined, dateOptions);
     eventDetailTime.textContent = `${event.st} - ${event.et}`;
     eventDetailLocation.textContent = event.l || 'No location specified';
 
-    // Style the popup based on the event's group color
     const color = groupColors[event.g] || '#888';
     eventDetailBox.style.borderTopColor = color;
     eventDetailGroup.style.color = color;
@@ -354,9 +344,8 @@ function checkDataFreshness() {
     if (diffMinutes > threshold) {
         lastUpdatedElement.classList.add('stale-data');
         collapsedSidebarInfo.classList.add('stale-data');
-        // showPopup();
         if (!isStalePopupShown) {
-            showPopup();
+            showStalePopup();
             isStalePopupShown = true;
         }
     } else {

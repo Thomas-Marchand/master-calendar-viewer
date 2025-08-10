@@ -1,6 +1,6 @@
 # Master Calendar Viewer
 
-This project was created to provide students with a faster, more responsive, and mobile-friendly alternative to the official university web calendar. The original calendar, while functional, can be slow to load and difficult to navigate on a phone. This viewer solves that by pre-processing the public calendar data and displaying it in a clean, dark-mode interface.
+This project was created to provide students with a faster, more responsive, and mobile-friendly alternative to the official university web calendar. The original calendar, while functional, can be slow to load and difficult to navigate on a phone, especially with limited connectivity. This viewer solves that by efficiently pre-processing the public calendar data and displaying it in a clean, dark-mode interface.
 
 The official calendar, which is the source of all data displayed here, can be found at: **[cal.ufr-info-p6.jussieu.fr](https://cal.ufr-info-p6.jussieu.fr/master/)**
 
@@ -25,7 +25,7 @@ This results in:
 *   **Reduced Data Transfer:** Megabytes of assets for the original page versus just kilobytes of JSON data for this viewer.
 *   **Fewer Server Requests:** A single data request versus dozens of requests for scripts, styles, and images on the original site.
 
-> The following chart illustrates the dramatic difference in initial page load resources between the original calendar and this viewer.
+> The following chart illustrates the difference in initial page load resources between the original calendar and this viewer, on a fast connection. Note that only 7 groups are currently implemented in this viewer, resulting in around 4KB of json. More groups will be added in the future.
 
 <!-- ![Performance Comparison Chart](performance-comparison.png) -->
 <img src="performance-comparison.png" alt="drawing" width="70%"/>
@@ -35,12 +35,12 @@ This results in:
 This project uses a decoupled architecture to separate data collection from data presentation.
 
 ### 1. The Scraper (local)
-This is a script that runs locally to scrape only the necessary calendar data and upload it to a public Gist, which acts as a free, simple JSON API.
+This is a script that runs locally to scrape only the necessary calendar data and upload it to a public Gist, which acts as a free, simple JSON API. The script is expected to be run periodically (every 30m daytime, every hour at night) to keep the data fresh.
 *   **Technology:** Python
 
 ### 2. The Frontend Viewer (`index.html`, `style.css`, `script.js`)
 
-This is a completely static web application hosted for free on GitHub Pages. It has no backend server of its own.
+This is a completely static web application hosted for free on GitHub Pages. It has no backend server of its own. It fetches the pre-processed calendar data from the public Gist and displays it in a user-friendly interface.
 *   **Technology:** HTML, CSS, Vanilla JavaScript.
 
 ## 🚀 Setup and Installation
@@ -69,8 +69,6 @@ This is an independent project created for the benefit of the student community.
 
 ### 🚧 Future Goals (that I might never implement)
 - [ ] **More groups:** Add more groups to the viewer.
-- [ ] **Smart Day Fetching:** Instead of a fixed number of weeks, calculate how far ahead to scrape based on the last known event for each group.
-- [ ] **Data Optimization:** Implement a check within the scraper to see if the calendar data has actually changed before making an API call to update the Gist, saving resources.
 - [ ] **User-Selectable Themes:** Add a toggle for a light mode theme.
 - [ ] **Search/Filter by Event Title:** Add an input field to filter the visible events by name.
 
