@@ -26,8 +26,9 @@ This results in:
 *   **Fewer Server Requests:** A single data request versus dozens of requests for scripts, styles, and images on the original site.
 
 > The following chart illustrates the dramatic difference in initial page load resources between the original calendar and this viewer.
->
-> ![Performance Comparison Chart](performance-comparison.png)
+
+<!-- ![Performance Comparison Chart](performance-comparison.png) -->
+<img src="performance-comparison.png" alt="drawing" width="70%"/>
 
 ## ⚙️ How It Works
 
@@ -50,7 +51,7 @@ No setup required! Just visit the page [here](https://thomas-marchand.github.io/
 
 This is an independent project created for the benefit of the student community.
 
-*   **Feedback & Requests:** Have a feature request, found a bug, or have any other feedback? Please **[open an issue](https://github.com/username/master-calendar-viewer/issues)** on this repository. All feedback is welcome.
+*   **Feedback & Requests:** Have a feature request, found a bug, or have any other feedback? Please **[open an issue](https://github.com/thomas-marchand/master-calendar-viewer/issues)** on this repository. All feedback is welcome.
 *   **Cooperation:** This project relies on publicly available data. If you are an official representative of the university and have any concerns, questions, or wish for this site to be taken down, please open an issue or contact me directly.
 
 ## 🗺️ Project Roadmap
