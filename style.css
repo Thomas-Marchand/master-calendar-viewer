@@ -270,13 +270,6 @@ body, html {
     100% { transform: scale(1) rotate(-90deg); }
 }
 
-/* [NEW] Quick pulse animation for swipe feedback */
-@keyframes swipe-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-    100% { transform: scale(1); }
-}
-
 #last-updated.stale-data {
     color: #ff6b6b;
     font-weight: bold;
@@ -323,14 +316,21 @@ body, html {
     font-size: 0.9em;
 }
 
-/* [NEW] Class to apply the swipe feedback pulse */
-.day-header.swipe-feedback {
-    animation: swipe-pulse 0.4s ease-out;
-}
-
 .day-header.today-header {
     animation: pulse-text-glow 2.5s infinite;
 }
+
+/* [NEW] Swipe feedback animation */
+.day-header.swiped {
+    animation: pulse-swipe 0.4s ease-out;
+}
+
+@keyframes pulse-swipe {
+    0% { transform: scale(1); background-color: #2a2a2a; }
+    50% { transform: scale(1.1); background-color: #4f4f4f; }
+    100% { transform: scale(1); background-color: #2a2a2a; }
+}
+
 
 @keyframes pulse-text-glow {
     0% { text-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
@@ -398,7 +398,7 @@ body, html {
 /* --- Popup Styles --- */
 .hidden { display: none !important; }
 
-#popup-overlay {
+#popup-overlay, #instruction-popup-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
@@ -410,7 +410,11 @@ body, html {
     backdrop-filter: blur(3px);
 }
 
-#popup-box {
+#instruction-popup-overlay {
+    z-index: 1200; /* Highest z-index to appear on top */
+}
+
+#popup-box, #instruction-popup-box {
     background-color: #2e2e2e;
     padding: 25px 30px;
     border-radius: 12px;
@@ -422,7 +426,7 @@ body, html {
     border: 1px solid #444;
 }
 
-#popup-close-btn {
+#popup-close-btn, #instruction-popup-close-btn {
     position: absolute;
     top: 10px; right: 15px;
     background: none;
@@ -432,14 +436,14 @@ body, html {
     cursor: pointer;
     line-height: 1;
 }
-#popup-close-btn:hover { color: #fff; }
+#popup-close-btn:hover, #instruction-popup-close-btn:hover { color: #fff; }
 
-#popup-box h2 {
+#popup-box h2, #instruction-popup-box h2 {
     margin-top: 0;
     color: #fff;
 }
 
-#popup-box p {
+#popup-box p, #instruction-popup-box p {
     color: #ccc;
     line-height: 1.6;
 }
@@ -454,6 +458,8 @@ body, html {
     border-radius: 6px;
     font-weight: bold;
     transition: background-color 0.2s;
+    border: none; /* Ensure buttons look consistent */
+    cursor: pointer;
 }
 .popup-link:hover { background-color: #5a5a5a; }
 
@@ -551,50 +557,4 @@ body, html {
     content: '📍';
     margin-right: 10px;
     font-size: 1.2em;
-}
-
-#instruction-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1200;
-    backdrop-filter: blur(3px);
-}
-
-#instruction-box {
-    background-color: #2e2e2e;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    width: calc(100% - 40px);
-    max-width: 380px;
-    text-align: center;
-    position: relative;
-    border: 1px solid #444;
-}
-
-#instruction-close-btn {
-    position: absolute;
-    top: 10px; right: 15px;
-    background: none;
-    border: none;
-    font-size: 2em;
-    color: #aaa;
-    cursor: pointer;
-    line-height: 1;
-}
-#instruction-close-btn:hover { color: #fff; }
-
-#instruction-box h2 {
-    margin-top: 0;
-    color: #fff;
-}
-
-#instruction-box p {
-    color: #ccc;
-    line-height: 1.6;
 }
