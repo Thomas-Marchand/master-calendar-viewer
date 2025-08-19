@@ -37,6 +37,8 @@ const lastUpdatedElement = document.getElementById('last-updated');
 const collapsedSidebarInfo = document.getElementById('collapsed-sidebar-info');
 // Popups
 const instructionPopupOverlay = document.getElementById('instruction-popup-overlay');
+const instructionPopupBox = document.getElementById('instruction-popup-box');
+const instructionPopupCloseBtn = document.getElementById('instruction-popup-close-btn');
 const stalePopupOverlay = document.getElementById('stale-popup-overlay');
 const stalePopupBox = document.getElementById('stale-popup-box');
 const stalePopupCloseBtn = document.getElementById('stale-popup-close-btn');
@@ -67,6 +69,8 @@ async function main() {
     eventDetailOverlay.addEventListener('click', hideEventDetail);
     eventDetailBox.addEventListener('click', (e) => e.stopPropagation());
     instructionPopupOverlay.addEventListener('click', hideInstructionPopup);
+    instructionPopupBox.addEventListener('click', (e) => e.stopPropagation());
+    instructionPopupCloseBtn.addEventListener('click', hideInstructionPopup);
 
     // Interaction Listeners
     calendarContainer.addEventListener('touchstart', handleTouchStart, false);
