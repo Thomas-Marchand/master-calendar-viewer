@@ -20,6 +20,9 @@
                 <div id="group-list"></div>
             </div>
             <div class="sidebar-footer">
+                <div id="today-control">
+                    <button id="today-btn" title="Go to Today">Today</button>
+                </div>
                 <div id="view-controls">
                     <button id="daily-view-btn" title="Day View">Day</button>
                     <button id="weekly-view-btn" title="Week View">Week</button>
@@ -41,11 +44,14 @@
             <div id="collapsed-sidebar-info"></div>
         </div>
     </div>
-    <div id="instruction-popup-overlay" class="hidden">
+        <div id="instruction-popup-overlay" class="hidden">
         <div id="instruction-popup-box">
             <h2>Welcome!</h2>
             <p>
                 Use the <strong>arrow keys</strong> on your keyboard or <strong>swipe left and right</strong> on the calendar to navigate.
+            </p>
+            <p>
+                <a href="https://github.com/Thomas-Marchand/master-calendar-viewer#keyboard-shortcuts" target="_blank" rel="noopener noreferrer" class="popup-link">Click here for more info on shortcuts</a>
             </p>
         </div>
     </div>
@@ -56,6 +62,7 @@
                 The calendar data has not been updated recently. For the most current schedule, it is recommended to visit the original source.
             </p>
             <a href="https://cal.ufr-info-p6.jussieu.fr/master/" target="_blank" rel="noopener noreferrer" class="popup-link">Go to cal.ufr-info-p6.jussieu.fr/master</a>
+            <button id="stale-popup-close-btn" title="Close">&times;</button>
         </div>
     </div>
     <div id="event-detail-overlay" class="hidden">

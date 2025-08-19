@@ -27,7 +27,6 @@ This results in:
 
 > The following chart illustrates the difference in initial page load resources between the original calendar and this viewer, on a fast connection. Note that only 7 groups are currently implemented in this viewer, resulting in around 4KB of json. More groups will be added in the future.
 
-<!-- ![Performance Comparison Chart](performance-comparison.png) -->
 <img src="performance-comparison.png" alt="drawing" width="70%"/>
 
 ## ⚙️ How It Works
@@ -35,7 +34,7 @@ This results in:
 This project uses a decoupled architecture to separate data collection from data presentation.
 
 ### 1. The Scraper (local)
-This is a script that runs locally to scrape only the necessary calendar data and upload it to a public Gist, which acts as a free, simple JSON API. The script is expected to be run periodically (every 30m daytime, every hour at night) to keep the data fresh.
+This is a script that runs locally to scrape only the necessary calendar data, cleans it and uploads it to a public Gist, which acts as a free, simple JSON API. The script is expected to be run periodically only during critical hours to ensure the data is fresh.
 *   **Technology:** Python
 
 ### 2. The Frontend Viewer (`index.html`, `style.css`, `script.js`)
@@ -68,9 +67,40 @@ This is an independent project created for the benefit of the student community.
 - [x] Live "current time" indicator.
 
 ### 🚧 Future Goals (that I might never implement)
+- [ ] **Optimized Scraper:** Make the scraping more efficient by not going to the website directly.
+- [ ] **Optimized Fetching:** Separate different calendars for less data to send.
 - [ ] **More groups:** Add more groups to the viewer.
 - [ ] **User-Selectable Themes:** Add a toggle for a light mode theme.
 - [ ] **Search/Filter by Event Title:** Add an input field to filter the visible events by name.
+
+## Keyboard Shortcuts
+
+The calendar viewer supports the following keyboard shortcuts for easy navigation:
+
+### Navigation
+- **← (Left Arrow)** - Go to previous day/week
+- **→ (Right Arrow)** - Go to next day/week
+- **Space** - Go to today's date
+
+### View Controls
+- **D** - Switch to day view
+- **W** - Switch to week view
+
+### Sidebar
+- **Tab** - Toggle sidebar visibility
+
+### Touch Controls
+- **Swipe Left** - Go to next day/week
+- **Swipe Right** - Go to previous day/week
+
+### Event Interaction
+- **Click/Tap** on any event to view detailed information
+- **ESC** - Close event detail popup or instruction popup
+
+### Group Toggle
+- **1 to 9** - Toggle visibility of groups 1 to 9 (if available)
+
+These shortcuts make it easy to navigate through the calendar without using the mouse, providing a more efficient user experience.
 
 ## 📄 License
 This project is open source and available under the [MIT License](LICENSE).

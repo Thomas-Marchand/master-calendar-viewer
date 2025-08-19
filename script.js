@@ -14,8 +14,7 @@ const GROUP_SPECIFIC_COLORS = {
     "M2_DAC": "#4c3553",
     "M2_IMA": "#2c2785",
 };
-const STALE_THRESHOLD_DAY_MIN = 40;
-const STALE_THRESHOLD_NIGHT_MIN = 70;
+const STALE_THRESHOLD_HOUR = 24;
 const MOBILE_BREAKPOINT = 768;
 
 // --- Global State ---
@@ -29,6 +28,7 @@ let isStalePopupShown = false;
 const sidebar = document.getElementById('sidebar');
 const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 const calendarContainer = document.querySelector('.calendar-container');
+const todayBtn = document.getElementById('today-btn');
 const dailyViewBtn = document.getElementById('daily-view-btn');
 const weeklyViewBtn = document.getElementById('weekly-view-btn');
 const prevBtn = document.getElementById('prev-btn');
@@ -39,6 +39,7 @@ const collapsedSidebarInfo = document.getElementById('collapsed-sidebar-info');
 const instructionPopupOverlay = document.getElementById('instruction-popup-overlay');
 const stalePopupOverlay = document.getElementById('stale-popup-overlay');
 const stalePopupBox = document.getElementById('stale-popup-box');
+const stalePopupCloseBtn = document.getElementById('stale-popup-close-btn');
 const eventDetailOverlay = document.getElementById('event-detail-overlay');
 const eventDetailBox = document.getElementById('event-detail-box');
 const eventDetailCloseBtn = document.getElementById('event-detail-close-btn');
@@ -51,6 +52,7 @@ const eventDetailLocation = document.getElementById('event-detail-location');
 
 async function main() {
     // Event Listeners
+    todayBtn.addEventListener('click', goToToday);
     prevBtn.addEventListener('click', navigatePrevious);
     nextBtn.addEventListener('click', navigateNext);
     sidebarToggleBtn.addEventListener('click', toggleSidebar);
@@ -60,6 +62,7 @@ async function main() {
     // Popup Listeners
     stalePopupOverlay.addEventListener('click', hideStalePopup);
     stalePopupBox.addEventListener('click', (e) => e.stopPropagation());
+    stalePopupCloseBtn.addEventListener('click', hideStalePopup);
     eventDetailCloseBtn.addEventListener('click', hideEventDetail);
     eventDetailOverlay.addEventListener('click', hideEventDetail);
     eventDetailBox.addEventListener('click', (e) => e.stopPropagation());
@@ -209,7 +212,47 @@ function handleKeyPress(event) {
             navigatePrevious();
             triggerSwipeAnimation();
         }
+    } else if (event.key === 'd' || event.key === 'D') {
+        switchView('daily');
+    } else if (event.key === 'w' || event.key === 'W') {
+        switchView('weekly');
+    } else if (event.key === 'Tab') {
+        event.preventDefault();
+        toggleSidebar();
+    } else if (event.key === ' ') {
+        event.preventDefault();
+        goToToday();
+    } else if (event.key === 'Escape') {
+        hideStalePopup();
+        hideEventDetail();
+        hideInstructionPopup();
+    } else if (event.key >= '1' && event.key <= '9') {
+        const groupIndex = parseInt(event.key) - 1;
+        toggleGroupByIndex(groupIndex);
     }
+}
+
+function toggleGroupByIndex(groupIndex) {
+    const groupName = allUniqueGroups[groupIndex];
+    const groupButton = document.querySelector(`[data-group="${groupName}"]`);
+    
+    if (!groupButton) return; // Group button not found
+    
+    // Toggle the group state
+    groupButton.classList.toggle('inactive');
+    
+    if (groupButton.classList.contains('inactive')) {
+        // Remove from selected groups
+        selectedGroups = selectedGroups.filter(g => g !== groupName);
+    } else {
+        // Add to selected groups
+        selectedGroups.push(groupName);
+    }
+    
+    // Save to localStorage and update UI
+    localStorage.setItem('selectedGroups', JSON.stringify(selectedGroups));
+    updateColorIndicators();
+    renderCalendar();
 }
 
 function triggerSwipeAnimation() {
@@ -336,12 +379,9 @@ function checkDataFreshness() {
     if (!scrapeMetadata.ts) return;
     const scrapedDate = new Date(scrapeMetadata.ts);
     const now = new Date();
-    const currentHour = now.getHours();
-    const isDayTime = currentHour >= 6 && currentHour < 22;
-    const threshold = isDayTime ? STALE_THRESHOLD_DAY_MIN : STALE_THRESHOLD_NIGHT_MIN;
-    const diffMinutes = Math.round((now - scrapedDate) / (1000 * 60));
+    const diffHours = (now - scrapedDate) / (1000 * 60 * 60);
 
-    if (diffMinutes > threshold) {
+    if (diffHours > STALE_THRESHOLD_HOUR) {
         lastUpdatedElement.classList.add('stale-data');
         collapsedSidebarInfo.classList.add('stale-data');
         if (!isStalePopupShown) {
@@ -583,6 +623,11 @@ function navigateNext() {
 function navigatePrevious() {
     const increment = currentView === 'weekly' ? 7 : 2;
     currentDateOffset -= increment;
+    renderCalendar();
+}
+
+function goToToday() {
+    currentDateOffset = 0;
     renderCalendar();
 }
 

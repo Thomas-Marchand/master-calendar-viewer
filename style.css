@@ -162,6 +162,23 @@ body, html {
     box-shadow: none;
 }
 
+#today-control {
+    display: flex;
+}
+
+#today-control button {
+    width: 100%;
+    background-color: #4f4f4f;
+    color: #e0e0e0;
+    border: 1px solid #5a5a5a;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
 #view-controls {
     display: flex;
     gap: 5px;
@@ -333,8 +350,8 @@ body, html {
 }
 
 @keyframes pulse-swipe {
-    0% { transform: scale(1.1); background-color: #444; }
-    100% { transform: scale(1); background-color: #2a2a2a; }
+    0% { background-color: #444; }
+    100% { background-color: #2a2a2a; }
 }
 
 
@@ -474,6 +491,18 @@ body, html {
     font-weight: bold;
     border: none;
     cursor: pointer;
+}
+
+#stale-popup-close-btn {
+    position: absolute;
+    top: 10px; right: 15px;
+    background: none;
+    border: none;
+    font-size: 2.5em;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
 }
 
 
