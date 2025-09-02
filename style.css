@@ -309,6 +309,7 @@ body, html {
     grid-template-columns: 1fr 1fr;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-color: #4f4f4f #2c2c2c;
 }
 
 .calendar-container.weekly-view {

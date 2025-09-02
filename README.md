@@ -10,7 +10,7 @@ The official calendar, which is the source of all data displayed here, can be fo
 
 ## ✨ Features
 
-*   **Automated Scraping:** A script navigates the calendar and extracts event data for multiple groups.
+*   **Automated Scraping:** A script navigates the calendar data and extracts events for multiple groups.
 *   **Mobile-First Dark Mode UI:** A clean, responsive interface designed for phone screens, with both daily and weekly views.
 *   **Dynamic Group Filtering:** Users can toggle which groups they want to see, with their preferences automatically saved in their browser for future visits.
 *   **Multi-Day Navigation:** Users can navigate through the calendar using buttons, keyboard arrow keys, or by swiping on a touch device.
@@ -18,7 +18,7 @@ The official calendar, which is the source of all data displayed here, can be fo
 
 ## ⚡ Performance: Why a Decoupled Viewer?
 
-By separating the slow data collection from the fast data presentation, this viewer significantly improves performance and **reduces the load on the university's servers**. Instead of every user loading the entire heavy calendar application, they download a lightweight static page that fetches only the pre-processed event data.
+By separating the data collection from the fast data presentation, this viewer significantly improves performance and **reduces the load on the university's servers**. Instead of every user loading the entire heavy calendar application, they download a lightweight static page that fetches only the pre-processed event data.
 
 This results in:
 *   **Faster Load Times:** Near-instantaneous loads versus several seconds for the original application.
@@ -34,7 +34,7 @@ This results in:
 This project uses a decoupled architecture to separate data collection from data presentation.
 
 ### 1. The Scraper (local)
-This is a script that runs locally to scrape only the necessary calendar data, cleans it and uploads it to a public Gist, which acts as a free, simple JSON API. The script is expected to be run periodically only during critical hours to ensure the data is fresh.
+This is a script that runs locally to scrape only the necessary calendar data, cleans it and uploads it to a public Gist, which acts as a free, simple JSON API. The script is expected to be run periodically only during critical hours to ensure the data is fresh. Since we don't scrape the calendar website directly, it's faster and more efficient.
 *   **Technology:** Python
 
 ### 2. The Frontend Viewer (`index.html`, `style.css`, `script.js`)
@@ -56,7 +56,7 @@ This is an independent project created for the benefit of the student community.
 ## 🗺️ Project Roadmap
 
 ### ✅ Achieved Goals
-- [x] Core scraping logic.
+- [x] Core scraping logic, efficient by not going to the website directly.
 - [x] Data persistence via API (GitHub Gist).
 - [x] Clean, mobile-friendly dark mode user interface.
 - [x] Daily and Weekly views.
@@ -67,7 +67,6 @@ This is an independent project created for the benefit of the student community.
 - [x] Live "current time" indicator.
 
 ### 🚧 Future Goals (that I might never implement)
-- [ ] **Optimized Scraper:** Make the scraping more efficient by not going to the website directly.
 - [ ] **Optimized Fetching:** Separate different calendars for less data to send.
 - [ ] **More groups:** Add more groups to the viewer.
 - [ ] **User-Selectable Themes:** Add a toggle for a light mode theme.
