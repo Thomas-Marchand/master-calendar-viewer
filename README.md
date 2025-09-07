@@ -1,5 +1,7 @@
 # Master Calendar Viewer
 
+[Website Link](https://thomas-marchand.github.io/master-calendar-viewer)
+
 This project was created to provide students with a faster, more responsive, and mobile-friendly alternative to the official university web calendar. The original calendar, while functional, can be slow to load and difficult to navigate on a phone, especially with limited connectivity. This viewer solves that by efficiently pre-processing the public calendar data and displaying it in a clean, dark-mode interface.
 
 The official calendar, which is the source of all data displayed here, can be found at: **[cal.ufr-info-p6.jussieu.fr](https://cal.ufr-info-p6.jussieu.fr/master/)**
@@ -41,10 +43,6 @@ This is a script that runs locally to scrape only the necessary calendar data, c
 
 This is a completely static web application hosted for free on GitHub Pages. It has no backend server of its own. It fetches the pre-processed calendar data from the public Gist and displays it in a user-friendly interface.
 *   **Technology:** HTML, CSS, Vanilla JavaScript.
-
-## 🚀 Setup and Installation
-
-No setup required! Just visit the page [here](https://thomas-marchand.github.io/master-calendar-viewer) to view the calendar.
 
 ## 📝 Feedback and Cooperation
 

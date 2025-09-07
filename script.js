@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', main);
 const GIST_RAW_URL = 'https://gist.githubusercontent.com/Thomas-Marchand/427d44e917d26d6073378d81db84d5b2/raw/calendar_events.json';
 const START_HOUR = 6;
 const END_HOUR = 21;
-const HOUR_HEIGHT = 60;
+const MIN_HOUR_HEIGHT = 60;
 const GROUP_SPECIFIC_COLORS = {
     "M1": "#4243a6",
     "M2": "#eb0909",
@@ -334,7 +334,7 @@ function updateCurrentTimeIndicator() {
 
     if (currentMinutes < timelineStartMinutes || currentMinutes > timelineEndMinutes) return;
 
-    const topPosition = ((currentMinutes - timelineStartMinutes) / 60) * HOUR_HEIGHT;
+    const topPosition = ((currentMinutes - timelineStartMinutes) / 60) * calculateHourHeight();
     
     const timeLine = document.createElement('div');
     timeLine.className = 'current-time-line';
@@ -488,7 +488,14 @@ function renderCalendar() {
     updateCurrentTimeIndicator();
 }
 
+function calculateHourHeight() {
+    const availableHeight = window.innerHeight - 41; // header height
+    const totalHours = END_HOUR - START_HOUR;
+    return Math.max(MIN_HOUR_HEIGHT, availableHeight / totalHours);
+}
+
 function createTimelineHours(timeline) {
+    const HOUR_HEIGHT = calculateHourHeight();
     const timelineHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
     timeline.style.height = `${timelineHeight}px`;
 
@@ -512,6 +519,7 @@ function createTimelineHours(timeline) {
 function renderDayEvents(dayEvents, timelineElement) {
     if (!dayEvents.length) return;
 
+    const HOUR_HEIGHT = calculateHourHeight();
     const events = dayEvents
         .map(event => {
             const startMinutes = timeToMinutes(event.st);
