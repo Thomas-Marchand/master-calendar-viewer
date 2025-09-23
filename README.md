@@ -12,7 +12,7 @@ The official calendar, which is the source of all data displayed here, can be fo
 
 ## Features
 
-*   **Lightweight & Fast:** The viewer loads in under a second on a typical mobile connection, compared to several seconds for the original calendar. The calendar is separated into near future and far future.
+*   **Instantaneous loading:** The viewer loads in under a second on a typical mobile connection (26ms on wifi with cached site but with new json fetch), compared to several seconds for the original calendar. The calendar is separated into near future and far future.
 *   **Automated Scraping:** A script navigates the calendar data and extracts events for multiple groups.
 *   **Mobile-First Dark Mode UI:** A clean, responsive interface designed for phone screens, with both daily and weekly views.
 *   **Dynamic Group Filtering:** Users can toggle which groups they want to see, with their preferences automatically saved in their browser for future visits.
