@@ -10,15 +10,16 @@ The official calendar, which is the source of all data displayed here, can be fo
 >
 > ![Demo GIF](calendar-demo.gif)
 
-## ✨ Features
+## Features
 
+*   **Lightweight & Fast:** The viewer loads in under a second on a typical mobile connection, compared to several seconds for the original calendar. The calendar is separated into near future and far future.
 *   **Automated Scraping:** A script navigates the calendar data and extracts events for multiple groups.
 *   **Mobile-First Dark Mode UI:** A clean, responsive interface designed for phone screens, with both daily and weekly views.
 *   **Dynamic Group Filtering:** Users can toggle which groups they want to see, with their preferences automatically saved in their browser for future visits.
 *   **Multi-Day Navigation:** Users can navigate through the calendar using buttons, keyboard arrow keys, or by swiping on a touch device.
 *   **Data Freshness Alerts:** The interface monitors the age of the scraped data and visually alerts the user with a popup if it becomes stale, suggesting they check the original source.
 
-## ⚡ Performance: Why a Decoupled Viewer?
+## Performance: Why a Decoupled Viewer?
 
 By separating the data collection from the fast data presentation, this viewer significantly improves performance and **reduces the load on the university's servers**. Instead of every user loading the entire heavy calendar application, they download a lightweight static page that fetches only the pre-processed event data.
 
@@ -31,7 +32,7 @@ This results in:
 
 <img src="performance-comparison.png" alt="drawing" width="70%"/>
 
-## ⚙️ How It Works
+## How It Works
 
 This project uses a decoupled architecture to separate data collection from data presentation.
 
@@ -44,16 +45,16 @@ This is a script that runs locally to scrape only the necessary calendar data, c
 This is a completely static web application hosted for free on GitHub Pages. It has no backend server of its own. It fetches the pre-processed calendar data from the public Gist and displays it in a user-friendly interface.
 *   **Technology:** HTML, CSS, Vanilla JavaScript.
 
-## 📝 Feedback and Cooperation
+## Feedback and Cooperation
 
 This is an independent project created for the benefit of the student community.
 
 *   **Feedback & Requests:** Have a feature request, found a bug, or have any other feedback? Please **[open an issue](https://github.com/thomas-marchand/master-calendar-viewer/issues)** on this repository. All feedback is welcome.
 *   **Cooperation:** This project relies on publicly available data. If you are an official representative of the university and have any concerns, questions, or wish for this site to be taken down, please open an issue or contact me directly.
 
-## 🗺️ Project Roadmap
+## Project Roadmap
 
-### ✅ Achieved Goals
+### Achieved Goals
 - [x] Core scraping logic, efficient by not going to the website directly.
 - [x] Data persistence via API (GitHub Gist).
 - [x] Clean, mobile-friendly dark mode user interface.
@@ -64,8 +65,8 @@ This is an independent project created for the benefit of the student community.
 - [x] "Last updated" timestamp and stale data alerts.
 - [x] Live "current time" indicator.
 
-### 🚧 Future Goals (that I might never implement)
-- [ ] **Optimized Fetching:** Separate different calendars for less data to send.
+### Future Goals (that I might never implement)
+- [ ] **Optimized Fetching:** Separate different calendars for less data to send. (cons: more requests)
 - [ ] **More groups:** Add more groups to the viewer.
 - [ ] **User-Selectable Themes:** Add a toggle for a light mode theme.
 - [ ] **Search/Filter by Event Title:** Add an input field to filter the visible events by name.
@@ -99,5 +100,5 @@ The calendar viewer supports the following keyboard shortcuts for easy navigatio
 
 These shortcuts make it easy to navigate through the calendar without using the mouse, providing a more efficient user experience.
 
-## 📄 License
+## License
 This project is open source and available under the [MIT License](LICENSE).
