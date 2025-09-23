@@ -3,85 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Calendar</title>
-    <link rel=""preload" href="https://gist.githubusercontent.com/Thomas-Marchand/427d44e917d26d6073378d81db84d5b2/raw/calendar_events.json" as="fetch" crossorigin="anonymous">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="favicon.png">
-    <link rel="stylesheet" href="style.css">
+    <title>This site has moved</title>
+    <meta http-equiv="refresh" content="5;url=https://sorbcal.github.io/ai2d">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .redirect-container {
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #1e1e1e;
+            border: 1px solid #383838;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.8em;
+            color: #ffffff;
+        }
+
+        p {
+            font-size: 1.1em;
+            color: #ababab;
+            line-height: 1.6;
+        }
+
+        a {
+            color: #8cb4ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .countdown {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #ffffff;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #8cb4ff;
+            margin: 20px auto;
+
+            animation: spin 1s ease infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="loading-indicator">Loading Calendar...</div>
-    <div class="app-container">
-        <div class="calendar-container"></div>
-        <div id="sidebar">
-            <button id="sidebar-toggle-btn" title="Toggle Sidebar">›</button>
-            <div id="group-color-indicators"></div>
-            <div class="sidebar-main-content">
-                <h3>Groups</h3>
-                <div id="group-list"></div>
-            </div>
-            <div class="sidebar-footer">
-                <div id="today-control">
-                    <button id="today-btn" title="Go to Today">Today</button>
-                </div>
-                <div id="view-controls">
-                    <button id="daily-view-btn" title="Day View">Day</button>
-                    <button id="weekly-view-btn" title="Week View">Week</button>
-                </div>
-                <div id="navigation-controls">
-                    <button id="prev-btn" title="Previous (←)">‹</button>
-                    <button id="next-btn" title="Next (→)">›</button>
-                </div>
-                <p class="data-source">
-                    data from&nbsp;<a href="https://cal.ufr-info-p6.jussieu.fr/master/" target="_blank" rel="noopener noreferrer">cal.ufr-info-p6.jussieu.fr</a>
-                    <a href="https://github.com/Thomas-Marchand/master-calendar-viewer" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="GitHub Logo">
-                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
-                        </svg>
-                    </a>
-                </p>
-                <div id="last-updated"></div>
-            </div>
-            <div id="collapsed-sidebar-info"></div>
-        </div>
-    </div>
-        <div id="instruction-popup-overlay" class="hidden">
-        <div id="instruction-popup-box">
-            <h2>Welcome!</h2>
-            <p>
-                Use the <strong>arrow keys</strong> on your keyboard or <strong>swipe left and right</strong> on the calendar to navigate.
-            </p>
-            <p>
-                <a href="https://github.com/Thomas-Marchand/master-calendar-viewer#keyboard-shortcuts" target="_blank" rel="noopener noreferrer" class="popup-link">Click here for more info on shortcuts</a>
-            </p>
-            <button id="instruction-popup-close-btn" title="Close">&times;</button>
-        </div>
-    </div>
-    <div id="stale-popup-overlay" class="hidden">
-        <div id="stale-popup-box">
-            <h2>Data May Be Outdated</h2>
-            <p>
-                The calendar data has not been updated recently. For the most current schedule, it is recommended to visit the original source.
-            </p>
-            <a href="https://cal.ufr-info-p6.jussieu.fr/master/" target="_blank" rel="noopener noreferrer" class="popup-link">Go to cal.ufr-info-p6.jussieu.fr/master</a>
-            <button id="stale-popup-close-btn" title="Close">&times;</button>
-        </div>
-    </div>
-    <div id="event-detail-overlay" class="hidden">
-        <div id="event-detail-box">
-            <button id="event-detail-close-btn" title="Close">&times;</button>
-            <div id="event-detail-header">
-                <h2 id="event-detail-title"></h2>
-            </div>
-            <div id="event-detail-body">
-                <p id="event-detail-group"></p>
-                <p id="event-detail-date"></p>
-                <p id="event-detail-time"></p>
-                <p id="event-detail-location"></p>
-            </div>
-        </div>
+
+    <div class="redirect-container">
+        <h1>This Website Has Moved</h1>
+        <p>
+            The content you are looking for has been permanently moved to <b>sorbcal.github.io/ai2d</b>.
+        </p>
+        <p>
+            You will be redirected to the new site in <span id="countdown">5</span> seconds.
+        </p>
+        <div class="spinner"></div>
+        <p>
+            If you are not redirected automatically, please <a id="redirect-link" href="https://sorbcal.github.io/ai2d">click here</a>.
+        </p>
     </div>
 
-    <script src="script.js" defer></script>
+    <script>
+        (function() {
+            const newUrl = "https://your-username.github.io/your-repository/";
+            document.getElementById('redirect-link').href = newUrl;
+
+            let countdownElement = document.getElementById('countdown');
+            let seconds = 5;
+
+            const interval = setInterval(() => {
+                seconds--;
+                countdownElement.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    window.location.href = newUrl;
+                }
+            }, 1000);
+        })();
+    </script>
+
 </body>
 </html>
